@@ -5299,3 +5299,7 @@ Did you mean one of these?
 #10 D:\\laragon\\www\\madaniX\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle()
 #11 {main}
 "} 
+[2026-09-14 01:17:30] production.ERROR: Maximum execution time of 30 seconds exceeded {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at D:\\laragon\\www\\madaniX\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:412)
+[stacktrace]
+#0 {main}
+"} 

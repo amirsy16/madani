@@ -426,7 +426,7 @@
                     <x-metric-card
                         label="Total Penyaluran"
                         value="Rp {{ number_format($totalPenyaluran, 0, ',', '.') }}"
-                        description="{{ number_format($overallPercentage, 1) }}% dari penerimaan"
+                        description="{{ number_format($penyaluranPercentage, 1) }}% dari penerimaan"
                         color="info"
                         icon="heroicon-o-arrow-up-on-square"
                     />
@@ -445,8 +445,8 @@
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
                         <h4 class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Efisiensi Penyaluran</h4>
-                        <p class="mt-1 text-xl font-bold tabular-nums {{ $overallPercentage >= 80 ? 'text-emerald-600 dark:text-emerald-400' : ($overallPercentage >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
-                            {{ number_format($overallPercentage, 1) }}%
+                        <p class="mt-1 text-xl font-bold tabular-nums {{ $penyaluranPercentage >= 80 ? 'text-emerald-600 dark:text-emerald-400' : ($penyaluranPercentage >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
+                            {{ number_format($penyaluranPercentage, 1) }}%
                         </p>
                     </div>
 
