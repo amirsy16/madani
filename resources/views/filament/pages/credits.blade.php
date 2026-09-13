@@ -64,12 +64,12 @@
                 LAZ Insan Madani
             </p>
             <div class="flex items-center justify-center gap-2 mt-2">
-                <span class="text-slate-400 dark:text-slate-500 text-sm font-medium">Simadi v1.2</span>
+                <span class="text-slate-400 dark:text-slate-500 text-sm font-medium">SIMADI v2.0</span>
                 <button
                     @click="showChangelog = true"
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all hover:scale-105"
                     style="background-color: #dbeafe; color: #1e40af;"
-                    title="Lihat perubahan v1.2"
+                    title="Lihat perubahan v2.0"
                 >
                     <x-heroicon-s-clipboard-document-list class="w-3 h-3" />
                     Apa yang baru?
@@ -116,12 +116,79 @@
                         </button>
                     </div>
 
-                    {{-- v1.2 --}}
+                    {{-- v2.0 --}}
                     <div class="p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: #800020; color: #ffffff;">v2.0</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500">14 September 2026</span>
+                            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: #d1fae5; color: #065f46;">Terbaru</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="flex items-center gap-1.5 mb-2">
+                                <x-heroicon-s-shield-check class="w-4 h-4" style="color: #16a34a;" />
+                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #16a34a;">Keamanan</span>
+                            </div>
+                            <ul class="space-y-2 pl-2">
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
+                                    <span><strong>Sistem dibersihkan dari jejak backdoor/webshell</strong> dan seluruh lubang aksesnya ditutup.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
+                                    <span><strong>Invoice &amp; bukti transfer kini privat</strong> — unduh invoice wajib login; dokumen tidak lagi bisa diakses publik.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
+                                    <span><strong>Peran pengguna diperketat</strong> — akun tanpa peran tidak bisa masuk panel, laporan keuangan dilindungi izin.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="flex items-center gap-1.5 mb-2">
+                                <x-heroicon-s-arrow-path class="w-4 h-4" style="color: #d97706;" />
+                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #d97706;">Diperbarui</span>
+                            </div>
+                            <ul class="space-y-2 pl-2">
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Angka laporan lebih dapat dipercaya</strong> — Laporan Perubahan Dana kini selalu balance dan saldo minus tidak disembunyikan.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Jauh lebih cepat</strong> — statistik dashboard di-cache dan index database dibetulkan; halaman tidak lagi berat.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Filter periode &amp; data alamat</strong> — filter Bulan/3/6 Bulan kini berfungsi, kota donatur tersimpan benar.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Tampilan dirapikan</strong> — login baru, kartu statistik seragam, tombol debug dihapus, Laporan Perubahan Dana disederhanakan.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex items-center gap-1.5 mb-2">
+                                <x-heroicon-s-minus-circle class="w-4 h-4" style="color: #dc2626;" />
+                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #dc2626;">Dihapus</span>
+                            </div>
+                            <ul class="space-y-2 pl-2">
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#dc2626;"></span>
+                                    <span><strong>Kirim Invoice via WhatsApp</strong> — fitur tidak pernah berfungsi sejak awal; PDF invoice tetap tersedia via tombol Download PDF.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="section-divider mb-5"></div>
+
+                        {{-- v1.2 --}}
                         <div class="flex items-center gap-2 mb-4">
                             <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: #dbeafe; color: #1e40af;">v1.2</span>
                             <span class="text-xs text-slate-400 dark:text-slate-500">24 Februari 2026</span>
-                            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: #d1fae5; color: #065f46;">Terbaru</span>
                         </div>
 
                         {{-- Ditambah --}}

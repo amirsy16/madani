@@ -1,6 +1,6 @@
 <x-filament-panels::page.simple>
 
-    <div class="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5 dark:border-gray-700 dark:bg-gray-900">
+    <div class="w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5 dark:border-gray-700 dark:bg-gray-900">
 
         <div class="grid md:grid-cols-[1.05fr_1fr]">
 

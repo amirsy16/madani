@@ -8,6 +8,8 @@ class Login extends BaseLogin
 {
     protected static string $view = 'filament.pages.auth.login';
 
+    protected ?string $maxContentWidth = '5xl';
+
     public function getHeading(): string
     {
         return '';
