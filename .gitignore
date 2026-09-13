@@ -35,3 +35,5 @@ yarn-error.log
 /storage/framework/views/*
 !/storage/framework/views/.htaccess
 /storage/app/private/*
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
