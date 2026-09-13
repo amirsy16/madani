@@ -9,7 +9,18 @@
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
 
-    <div class="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5 dark:border-gray-700 dark:bg-gray-900">
+    
+    <style>
+        .fi-simple-main:has(.simadi-login-card) {
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+            --tw-ring-offset-shadow: 0 0 #0000;
+            --tw-ring-shadow: 0 0 #0000;
+        }
+    </style>
+
+    <div class="simadi-login-card w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5 dark:border-gray-700 dark:bg-gray-900">
 
         <div class="grid md:grid-cols-[1.05fr_1fr]">
 

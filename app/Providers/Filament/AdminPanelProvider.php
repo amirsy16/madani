@@ -36,6 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->theme(asset('css/filament/admin/theme.css'))
+            ->simplePageMaxContentWidth('6xl')
             ->passwordReset()
             ->emailVerification()
             ->topNavigation()
