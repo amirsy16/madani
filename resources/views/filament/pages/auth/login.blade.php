@@ -9,25 +9,25 @@
             --tw-ring-offset-shadow: 0 0 #0000;
             --tw-ring-shadow: 0 0 #0000;
         }
+        /* Latar penuh: maroon gelap + glow merah kiri-bawah + tekstur titik */
         body:has(.simadi-login-card),
         .fi-simple-layout:has(.simadi-login-card) {
             background-color: #3d0a15;
+            background-image:
+                radial-gradient(56rem 36rem at 6% 96%, rgba(154, 15, 45, 0.60), transparent 62%),
+                radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px);
+            background-size: 100% 100%, 22px 22px;
+            background-repeat: no-repeat, repeat;
         }
-        .fi-simple-header:has(+ .simadi-login-card) img { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+        .fi-simple-header:has(+ .simadi-login-card) img { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4)); }
     </style>
 
-    <div class="simadi-login-card w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5 dark:border-gray-700 dark:bg-gray-900">
+    <div class="simadi-login-card w-full">
 
-        <div class="grid md:grid-cols-[1.05fr_1fr]">
+        <div class="grid items-stretch gap-10 md:grid-cols-[1.05fr_1fr] md:gap-12">
 
-            {{-- Panel brand --}}
-            <div class="relative hidden flex-col justify-between overflow-hidden bg-[#3d0a15] p-8 md:flex">
-                {{-- tekstur titik halus, sangat rendah, murni dekoratif --}}
-                <div
-                    class="absolute inset-0 opacity-[0.14]"
-                    style="background-image: radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1px); background-size: 22px 22px;"
-                ></div>
-                <div class="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#800020]/70 blur-2xl"></div>
+            {{-- Panel brand — transparan, menyatu dengan latar halaman --}}
+            <div class="relative hidden flex-col justify-between p-8 md:flex lg:p-10">
 
                 <div class="relative">
                     <div class="inline-flex items-center rounded-lg bg-white/95 px-3.5 py-2.5 shadow-sm">
@@ -61,8 +61,8 @@
                 </p>
             </div>
 
-            {{-- Panel form --}}
-            <div class="p-8 sm:p-10">
+            {{-- Panel form — kartu putih --}}
+            <div class="rounded-2xl bg-white p-8 shadow-2xl shadow-black/30 ring-1 ring-black/5 sm:p-10 dark:bg-gray-900 dark:ring-white/10">
                 <div class="mb-8 flex items-center justify-between md:hidden">
                     <img src="{{ asset('images/LOGOIM.png') }}" alt="LAZ Insan Madani" class="h-8 w-auto">
                 </div>
