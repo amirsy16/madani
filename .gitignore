@@ -25,3 +25,13 @@ yarn-error.log
 
 # Seeder berisi data nyata — tidak dipush
 /database/seeders/
+
+# Runtime storage — tidak dipush
+/storage/logs/*
+!/storage/logs/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.htaccess
+/storage/framework/sessions/*
+/storage/framework/views/*
+!/storage/framework/views/.htaccess
+/storage/app/private/*
