@@ -9,6 +9,11 @@
             --tw-ring-offset-shadow: 0 0 #0000;
             --tw-ring-shadow: 0 0 #0000;
         }
+        body:has(.simadi-login-card),
+        .fi-simple-layout:has(.simadi-login-card) {
+            background-color: #3d0a15;
+        }
+        .fi-simple-header:has(+ .simadi-login-card) img { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
     </style>
 
     <div class="simadi-login-card w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5 dark:border-gray-700 dark:bg-gray-900">
@@ -40,9 +45,9 @@
 
                 <ul class="relative mt-10 space-y-3.5">
                     @foreach ([
-                        ['icon' => 'heroicon-o-check-badge', 'text' => 'Verifikasi donasi & penyaluran teraudit'],
-                        ['icon' => 'heroicon-o-chart-bar', 'text' => 'Laporan dana real-time dengan detail per kategori'],
-                        ['icon' => 'heroicon-o-shield-check', 'text' => 'Data dokumen sensitif tersimpan privat'],
+                        ['icon' => 'heroicon-o-check-badge', 'text' => 'Pencatatan donasi dan penyaluran dalam satu sistem'],
+                        ['icon' => 'heroicon-o-chart-bar', 'text' => 'Laporan dana tersedia kapan saja'],
+                        ['icon' => 'heroicon-o-shield-check', 'text' => 'Data donatur tersimpan dengan aman'],
                     ] as $item)
                         <li class="flex items-center gap-3 text-sm text-white/80">
                             <x-dynamic-component :component="$item['icon']" class="h-5 w-5 shrink-0 text-amber-300/90" />
@@ -52,8 +57,7 @@
                 </ul>
 
                 <p class="relative mt-10 text-[11px] leading-relaxed text-white/45">
-                    &copy; {{ date('Y') }} LAZ Insan Madani &middot; Sistem internal — akses terbatas
-                    untuk pengelola yang berwenang.
+                    &copy; {{ date('Y') }} LAZ Insan Madani
                 </p>
             </div>
 

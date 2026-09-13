@@ -126,21 +126,17 @@
 
                         <div class="mb-4">
                             <div class="flex items-center gap-1.5 mb-2">
-                                <x-heroicon-s-shield-check class="w-4 h-4" style="color: #16a34a;" />
-                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #16a34a;">Keamanan</span>
+                                <x-heroicon-s-sparkles class="w-4 h-4" style="color: #16a34a;" />
+                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #16a34a;">Yang Baru</span>
                             </div>
                             <ul class="space-y-2 pl-2">
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
-                                    <span><strong>Sistem dibersihkan dari jejak backdoor/webshell</strong> dan seluruh lubang aksesnya ditutup.</span>
+                                    <span><strong>Halaman login baru</strong> — tampilan masuk yang lebih segar dengan identitas LAZ Insan Madani.</span>
                                 </li>
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
-                                    <span><strong>Invoice &amp; bukti transfer kini privat</strong> — unduh invoice wajib login; dokumen tidak lagi bisa diakses publik.</span>
-                                </li>
-                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
-                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
-                                    <span><strong>Peran pengguna diperketat</strong> — akun tanpa peran tidak bisa masuk panel, laporan keuangan dilindungi izin.</span>
+                                    <span><strong>Tampilan dashboard &amp; laporan lebih rapi</strong> — kartu statistik seragam, warna dan format angka konsisten.</span>
                                 </li>
                             </ul>
                         </div>
@@ -153,19 +149,23 @@
                             <ul class="space-y-2 pl-2">
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
-                                    <span><strong>Angka laporan lebih dapat dipercaya</strong> — Laporan Perubahan Dana kini selalu balance dan saldo minus tidak disembunyikan.</span>
+                                    <span><strong>Lebih cepat dibuka</strong> — dashboard dan laporan tidak lagi terasa berat.</span>
                                 </li>
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
-                                    <span><strong>Jauh lebih cepat</strong> — statistik dashboard di-cache dan index database dibetulkan; halaman tidak lagi berat.</span>
+                                    <span><strong>Angka laporan lebih konsisten</strong> — total dan saldo di setiap laporan kini saling cocok.</span>
                                 </li>
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
-                                    <span><strong>Filter periode &amp; data alamat</strong> — filter Bulan/3/6 Bulan kini berfungsi, kota donatur tersimpan benar.</span>
+                                    <span><strong>Filter Bulan Lalu / 3 Bulan / 6 Bulan kini berfungsi normal</strong> — statistik mengikuti periode yang dipilih.</span>
                                 </li>
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
-                                    <span><strong>Tampilan dirapikan</strong> — login baru, kartu statistik seragam, tombol debug dihapus, Laporan Perubahan Dana disederhanakan.</span>
+                                    <span><strong>Alamat donatur lebih lengkap</strong> — kota/kabupaten kini ikut tersimpan.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Menu dan akses lebih sesuai peran</strong> — setiap pengguna melihat menu yang memang menjadi tanggung jawabnya.</span>
                                 </li>
                             </ul>
                         </div>
@@ -178,7 +178,7 @@
                             <ul class="space-y-2 pl-2">
                                 <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                                     <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#dc2626;"></span>
-                                    <span><strong>Kirim Invoice via WhatsApp</strong> — fitur tidak pernah berfungsi sejak awal; PDF invoice tetap tersedia via tombol Download PDF.</span>
+                                    <span><strong>Kirim Invoice via WhatsApp</strong> — diganti tombol <em>Download PDF</em> yang lebih andal; invoice tetap bisa dibagikan lewat WhatsApp secara manual.</span>
                                 </li>
                             </ul>
                         </div>
