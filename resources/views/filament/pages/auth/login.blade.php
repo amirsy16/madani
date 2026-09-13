@@ -34,7 +34,7 @@
                         ['icon' => 'heroicon-o-shield-check', 'text' => 'Data dokumen sensitif tersimpan privat'],
                     ] as $item)
                         <li class="flex items-center gap-3 text-sm text-white/80">
-                            <x-dynamic-component :component="$item['icon']" class="h-4.5 w-4.5 shrink-0 text-amber-300/90" />
+                            <x-dynamic-component :component="$item['icon']" class="h-5 w-5 shrink-0 text-amber-300/90" />
                             <span>{{ $item['text'] }}</span>
                         </li>
                     @endforeach
