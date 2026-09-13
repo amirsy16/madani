@@ -1,0 +1,1 @@
+<?php echo $__env->make("filament.components.credits-icon", array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/simadior/public_html/storage/framework/views/b8d2f108f8c1bf945fec5322ea743f62.blade.php ENDPATH**/ ?>

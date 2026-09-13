@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Import Data - Sistem Madani</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            background: #f5f5f5;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #666;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 5px;
+        }
+        
+        .nav-tab:hover {
+            background: #e8e8e8;
+        }
+        
+        .nav-tab.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h2::before {
+            content: "📋";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            margin: 25px 0 15px;
+            font-size: 1.3em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-required {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .badge-optional {
+            background: #95e1d3;
+            color: #333;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 13px;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        .excel-table thead {
+            background: #217346;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .excel-table th {
+            padding: 6px 10px;
+            text-align: left;
+            border: 1px solid #d0d7de;
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 11px;
+        }
+        
+        .excel-table td {
+            padding: 5px 10px;
+            border: 1px solid #d0d7de;
+            background: white;
+            vertical-align: top;
+            font-size: 12px;
+        }
+        
+        .excel-table tbody tr:nth-child(even) {
+            background: #f6f8fa;
+        }
+        
+        .excel-table tbody tr:hover {
+            background: #fff8dc;
+        }
+        
+        .excel-table .row-number {
+            background: #f0f0f0;
+            color: #333;
+            font-weight: bold;
+            text-align: center;
+            width: 35px;
+            border-right: 2px solid #217346;
+            font-size: 11px;
+        }
+        
+        .excel-wrapper {
+            overflow-x: auto;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+        }
+        
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            color: #e65100;
+        }
+        
+        .alert-danger {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+        
+        .alert-success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+        }
+        
+        .example-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px solid #667eea;
+        }
+        
+        .example-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .master-data-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .master-data-box h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .master-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .master-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+            font-size: 14px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .steps li {
+            counter-increment: step-counter;
+            margin: 15px 0;
+            padding-left: 50px;
+            position: relative;
+            font-size: 15px;
+        }
+        
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .nav-tabs {
+                display: none;
+            }
+            .tab-content {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 Panduan Import Data</h1>
+            <p>Sistem Manajemen Donasi - LAZ Insan Madani</p>
+        </div>
+        
+        <div class="content">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="openTab(event, 'donatur')">👥 Donatur</button>
+                <button class="nav-tab" onclick="openTab(event, 'donasi')">💰 Donasi</button>
+                <button class="nav-tab" onclick="openTab(event, 'penyaluran')">🎁 Penyaluran</button>
+                <button class="nav-tab" onclick="openTab(event, 'tips')">💡 Tips & FAQ</button>
+            </div>
+            
+            <!-- TAB DONATUR -->
+            <div id="donatur" class="tab-content active">
+                <div class="section">
+                    <h2>Import Data Donatur</h2>
+                    
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div>
+                            <strong>Informasi:</strong><br>
+                            Gunakan fitur import untuk menambahkan banyak data donatur sekaligus (tidak perlu satu-satu). Kode donatur akan dibuat otomatis dengan format <strong>DN25XXXX</strong>.
+                        </div>
+                    </div>
+                    
+                    <h3>📝 Langkah-langkah Import</h3>
+                    <ol class="steps">
+                        <li>Buka menu <strong>Donatur</strong> di menu atas</li>
+                        <li>Tekan tombol <strong>Import Donatur</strong> (tombol berwarna hijau)</li>
+                        <li>Tekan <strong>Download Template</strong> untuk mengunduh contoh tabel Excel</li>
+                        <li>Buka file Excel yang diunduh, lalu isi data sesuai petunjuk di bawah</li>
+                        <li>Simpan file Excel yang sudah diisi</li>
+                        <li>Tekan tombol <strong>Pilih File</strong> dan pilih file Excel yang tadi diisi</li>
+                        <li>Tekan <strong>Import</strong> dan tunggu sampai proses selesai</li>
+                    </ol>
+                    
+                    <h3>📊 Format Kolom Excel</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Kolom</th>
+                                <th>Status</th>
+                                <th>Format/Nilai yang Diizinkan</th>
+                                <th>Contoh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>gender</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td><code>male</code> / <code>female</code> / <code>organization</code></td>
+                                <td>male</td>
+                            </tr>
+                            <tr>
+                                <td><strong>nama</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Nama lengkap (maksimal 255 karakter)</td>
+                                <td>Ahmad Donatur</td>
+                            </tr>
+                            <tr>
+                                <td><strong>nomor_hp</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nomor HP tanpa awalan 0 atau +62</td>
+                                <td>081234567890</td>
+                            </tr>
+                            <tr>
+                                <td><strong>email</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Format email yang valid</td>
+                                <td>ahmad@example.com</td>
+                            </tr>
+                            <tr>
+                                <td><strong>alamat_detail</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Alamat lengkap (maksimal 500 karakter)</td>
+                                <td>Jl. Contoh No. 123, RT 01/RW 02</td>
+                            </tr>
+                            <tr>
+                                <td><strong>pekerjaan</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nama pekerjaan (harus sesuai dengan master data)</td>
+                                <td>Karyawan Swasta</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="master-data-box">
+                        <h4>📌 Master Data Pekerjaan yang Tersedia:</h4>
+                        <div class="master-list">
+                            <div class="master-item">Belum/Tidak Bekerja</div>
+                            <div class="master-item">Pelajar/Mahasiswa</div>
+                            <div class="master-item">Mengurus Rumah Tangga</div>
+                            <div class="master-item">Pensiunan</div>
+                            <div class="master-item">Buruh</div>
+                            <div class="master-item">Dokter</div>
+                            <div class="master-item">Dosen</div>
+                            <div class="master-item">Guru</div>
+                            <div class="master-item">Karyawan Swasta</div>
+                            <div class="master-item">Nelayan</div>
+                            <div class="master-item">Pedagang</div>
+                            <div class="master-item">Pegawai Negeri Sipil</div>
+                            <div class="master-item">Petani</div>
+                            <div class="master-item">POLRI</div>
+                            <div class="master-item">TNI</div>
+                            <div class="master-item">Wiraswasta</div>
+                            <div class="master-item">Lainnya</div>
+                        </div>
+                    </div>
+                    
+                    <h3>✅ Contoh Data yang Benar</h3>
+                    <div class="excel-table-container">
+                        <div class="excel-table-wrapper">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th class="row-number">#</th>
+                                        <th>gender</th>
+                                        <th>nama</th>
+                                        <th>nomor_hp</th>
+                                        <th>email</th>
+                                        <th>alamat_detail</th>
+                                        <th>pekerjaan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td>male</td>
+                                        <td>Ahmad Syahril</td>
+                                        <td>081367123456</td>
+                                        <td>ahmad.syahril@email.com</td>
+                                        <td>Jl. Sultan Thaha No. 45, Telanaipura, Kota Jambi</td>
+                                        <td>Karyawan Swasta</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">2</td>
+                                        <td>female</td>
+                                        <td>Siti Maryam</td>
+                                        <td>082174567890</td>
+                                        <td>siti.maryam@gmail.com</td>
+                                        <td>Jl. Gatot Subroto No. 12, Kotabaru, Jambi</td>
+                                        <td>Mengurus Rumah Tangga</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">3</td>
+                                        <td>organization</td>
+                                        <td>PT Sarana Jambi Sejahtera</td>
+                                        <td>074161234567</td>
+                                        <td>info@saranajambi.co.id</td>
+                                        <td>Jl. Ahmad Yani Komplek Ruko Jambi Trade Center Blok A-12</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">4</td>
+                                        <td>male</td>
+                                        <td>Budi Santoso</td>
+                                        <td>085267891234</td>
+                                        <td>budi.santoso@yahoo.com</td>
+                                        <td>Jl. KH. Ahmad Dahlan No. 78, Pasar Jambi</td>
+                                        <td>Wiraswasta</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">⚠️</span>
+                        <div>
+                            <strong>Perhatian!</strong><br>
+                            • Gender harus ditulis dengan huruf kecil: <code>male</code>, <code>female</code>, atau <code>organization</code><br>
+                            • Nomor HP dan Email harus UNIK (tidak boleh duplikat)<br>
+                            • Jika pekerjaan tidak sesuai dengan master data, akan diabaikan<br>
+                            • Kode donatur akan di-generate otomatis, tidak perlu diisi
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB DONASI -->
+            <div id="donasi" class="tab-content">
+                <div class="section">
+                    <h2>Import Data Donasi</h2>
+                    
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div>
+                            <strong>Informasi:</strong><br>
+                            Sebelum memasukkan data donasi, pastikan data <strong>Donatur</strong> sudah ada di sistem. Nomor transaksi akan dibuat otomatis oleh sistem.
+                        </div>
+                    </div>
+                    
+                    <h3>📝 Langkah-langkah Import</h3>
+                    <ol class="steps">
+                        <li>Buka menu <strong>Donasi</strong> di menu atas</li>
+                        <li>Tekan tombol <strong>Import Donasi</strong> (tombol berwarna hijau)</li>
+                        <li>Tekan <strong>Download Template</strong> untuk mengunduh contoh tabel Excel</li>
+                        <li>Buka file Excel yang diunduh, lalu isi data sesuai petunjuk di bawah</li>
+                        <li>Simpan file Excel yang sudah diisi</li>
+                        <li>Tekan tombol <strong>Pilih File</strong> dan pilih file Excel yang tadi diisi</li>
+                        <li>Tekan <strong>Import</strong> dan tunggu sampai proses selesai</li>
+                    </ol>
+                    
+                    <h3>📊 Format Kolom Excel</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Kolom</th>
+                                <th>Status</th>
+                                <th>Format/Keterangan</th>
+                                <th>Contoh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>kode_donatur</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Kode donatur yang sudah terdaftar</td>
+                                <td>DN250001</td>
+                            </tr>
+                            <tr>
+                                <td><strong>tanggal_donasi</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Format: <strong>DD/MM/YYYY</strong> (contoh: 17/12/2025) - Excel akan otomatis format seperti ini</td>
+                                <td>17/12/2025</td>
+                            </tr>
+                            <tr>
+                                <td><strong>jenis_donasi</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Nama jenis donasi (harus sesuai master data)</td>
+                                <td>Infaq Tidak Terikat</td>
+                            </tr>
+                            <tr>
+                                <td><strong>jumlah</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nominal donasi (untuk donasi uang)</td>
+                                <td>500000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>metode_pembayaran</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nama metode pembayaran</td>
+                                <td>TF BSI 1630</td>
+                            </tr>
+                            <tr>
+                                <td><strong>fundraiser</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nama fundraiser</td>
+                                <td>ZULI</td>
+                            </tr>
+                            <tr>
+                                <td><strong>keterangan_infak_khusus</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Untuk infaq terikat</td>
+                                <td>Untuk pembangunan masjid</td>
+                            </tr>
+                            <tr>
+                                <td><strong>deskripsi_barang</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Untuk donasi barang</td>
+                                <td>Beras 10 kg</td>
+                            </tr>
+                            <tr>
+                                <td><strong>perkiraan_nilai_barang</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Estimasi nilai barang</td>
+                                <td>150000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>catatan_donatur</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Catatan dari donatur</td>
+                                <td>Semoga bermanfaat</td>
+                            </tr>
+                            <tr>
+                                <td><strong>atas_nama_hamba_allah</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>true/false atau yes/no</td>
+                                <td>false</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="master-data-box">
+                        <h4>📌 Master Data Jenis Donasi yang Tersedia:</h4>
+                        <div class="master-list">
+                            <div class="master-item">Zakat Maal</div>
+                            <div class="master-item">Zakat Fitrah</div>
+                            <div class="master-item">Zakat Perusahaan</div>
+                            <div class="master-item">Infaq Terikat</div>
+                            <div class="master-item">Infaq Tidak Terikat</div>
+                            <div class="master-item">Sedekah</div>
+                            <div class="master-item">Dana CSR</div>
+                            <div class="master-item">DSKL (Dana Sosial Keagamaan Lainnya)</div>
+                            <div class="master-item">Penyaluran Langsung</div>
+                            <div class="master-item">Donasi Logistik/Barang</div>
+                        </div>
+                    </div>
+                    
+                    <div class="master-data-box">
+                        <h4>📌 Master Data Metode Pembayaran yang Tersedia:</h4>
+                        <div class="master-list">
+                            <div class="master-item">Tunai</div>
+                            <div class="master-item">QRIS (Umum)</div>
+                            <div class="master-item">LinkAja</div>
+                            <div class="master-item">GoPay</div>
+                            <div class="master-item">OVO</div>
+                            <div class="master-item">DANA</div>
+                            <div class="master-item">TF BSI 1630</div>
+                            <div class="master-item">TF BSI 6368</div>
+                            <div class="master-item">TF BSI 6573</div>
+                            <div class="master-item">TF Muamalat 7496</div>
+                            <div class="master-item">TF Mandiri 6777</div>
+                            <div class="master-item">TF BCA 5393</div>
+                            <div class="master-item">TF BNI 9073</div>
+                        </div>
+                    </div>
+                    
+                    <h3>✅ Contoh Data yang Benar</h3>
+                    
+                    <div class="example-box">
+                        <h4>📊 Contoh Format Excel untuk Import Donasi</h4>
+                        
+                        <div class="excel-wrapper">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th class="row-number">#</th>
+                                        <th>kode_donatur</th>
+                                        <th>tanggal_donasi</th>
+                                        <th>jenis_donasi</th>
+                                        <th>jumlah</th>
+                                        <th>metode_pembayaran</th>
+                                        <th>fundraiser</th>
+                                        <th>keterangan_infak_khusus</th>
+                                        <th>deskripsi_barang</th>
+                                        <th>perkiraan_nilai_barang</th>
+                                        <th>catatan_donatur</th>
+                                        <th>atas_nama_hamba_allah</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td>DN250001</td>
+                                        <td>15/01/2025</td>
+                                        <td>Infaq Tidak Terikat</td>
+                                        <td>500000</td>
+                                        <td>TF BSI 1630</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>Semoga bermanfaat untuk umat</td>
+                                        <td>false</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">2</td>
+                                        <td>DN250002</td>
+                                        <td>20/02/2025</td>
+                                        <td>Zakat Maal</td>
+                                        <td>2500000</td>
+                                        <td>Tunai</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>true</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">3</td>
+                                        <td>DN250001</td>
+                                        <td>10/03/2025</td>
+                                        <td>Donasi Logistik/Barang</td>
+                                        <td>0</td>
+                                        <td>Donasi Logistik/Barang</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>Beras 25 kg merk Ramos</td>
+                                        <td>250000</td>
+                                        <td>Donasi untuk masjid Al-Falah</td>
+                                        <td>false</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">4</td>
+                                        <td>DN250003</td>
+                                        <td>22/01/2025</td>
+                                        <td>Infaq Terikat</td>
+                                        <td>1000000</td>
+                                        <td>QRIS (Umum)</td>
+                                        <td>Ahmad Syahrul</td>
+                                        <td>Untuk renovasi Masjid Nurul Iman Telanaipura</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>false</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">⚠️</span>
+                        <div>
+                            <strong>Perhatian!</strong><br>
+                            • Kode donatur harus sudah terdaftar di sistem<br>
+                            • Untuk donasi barang, set jumlah = 0 dan isi deskripsi_barang<br>
+                            • Nama jenis donasi, metode pembayaran, dan fundraiser harus sama persis dengan master data<br>
+                            • <strong>Format tanggal: DD/MM/YYYY</strong> (contoh: 17/12/2025)<br>
+                            • Biarkan Excel yang atur tanggalnya, jangan diubah ke Text
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB PENYALURAN -->
+            <div id="penyaluran" class="tab-content">
+                <div class="section">
+                    <h2>Import Program Penyaluran</h2>
+                    
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div>
+                            <strong>Informasi:</strong><br>
+                            Pastikan saldo dana mencukupi sebelum memasukkan data penyaluran. Khusus untuk Dana Zakat, <strong>wajib</strong> mengisi kolom Asnaf (jenis mustahik).
+                        </div>
+                    </div>
+                    
+                    <h3>📝 Langkah-langkah Import</h3>
+                    <ol class="steps">
+                        <li>Buka menu <strong>Penyaluran Dana</strong> di menu atas</li>
+                        <li>Tekan tombol <strong>Import Penyaluran</strong> (tombol berwarna hijau)</li>
+                        <li>Tekan <strong>Download Template</strong> untuk mengunduh contoh tabel Excel</li>
+                        <li>Buka file Excel yang diunduh, lalu isi data sesuai petunjuk di bawah</li>
+                        <li>Simpan file Excel yang sudah diisi</li>
+                        <li>Tekan tombol <strong>Pilih File</strong> dan pilih file Excel yang tadi diisi</li>
+                        <li>Tekan <strong>Import</strong> dan tunggu sampai proses selesai</li>
+                    </ol>
+                    
+                    <h3>📊 Format Kolom Excel</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Kolom</th>
+                                <th>Status</th>
+                                <th>Format/Keterangan</th>
+                                <th>Contoh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>tanggal_penyaluran</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Format: <strong>DD/MM/YYYY</strong> (contoh: 17/12/2025) - Excel akan otomatis format seperti ini</td>
+                                <td>17/12/2025</td>
+                            </tr>
+                            <tr>
+                                <td><strong>nama_program</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Nama program penyaluran (maksimal 255 karakter)</td>
+                                <td>Bantuan Sembako Fakir Miskin</td>
+                            </tr>
+                            <tr>
+                                <td><strong>jumlah_dana</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Nominal dana yang disalurkan</td>
+                                <td>1500000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>sumber_dana</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Sumber dana (harus sesuai master data)</td>
+                                <td>Dana Zakat</td>
+                            </tr>
+                            <tr>
+                                <td><strong>bidang_program</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Bidang program (harus sesuai master data)</td>
+                                <td>Kemanusiaan</td>
+                            </tr>
+                            <tr>
+                                <td><strong>lokasi_penyaluran</strong></td>
+                                <td><span class="badge badge-required">WAJIB</span></td>
+                                <td>Lokasi lengkap penyaluran</td>
+                                <td>Kelurahan Tangkit, Kec. Sungai Durian</td>
+                            </tr>
+                            <tr>
+                                <td><strong>asnaf</strong></td>
+                                <td><span class="badge badge-required">WAJIB*</span></td>
+                                <td>*Wajib untuk Dana Zakat</td>
+                                <td>Fakir</td>
+                            </tr>
+                            <tr>
+                                <td><strong>jenis_donasi</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Jenis donasi spesifik</td>
+                                <td>Zakat Maal</td>
+                            </tr>
+                            <tr>
+                                <td><strong>penerima_manfaat_individu</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nama penerima (untuk individu)</td>
+                                <td>Ahmad Wijaya</td>
+                            </tr>
+                            <tr>
+                                <td><strong>penerima_manfaat_lembaga</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Nama lembaga penerima</td>
+                                <td>Yayasan Harapan Yatim</td>
+                            </tr>
+                            <tr>
+                                <td><strong>jumlah_penerima_manfaat</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Jumlah orang/KK yang menerima</td>
+                                <td>25</td>
+                            </tr>
+                            <tr>
+                                <td><strong>keterangan</strong></td>
+                                <td><span class="badge badge-optional">Opsional</span></td>
+                                <td>Keterangan tambahan</td>
+                                <td>Bantuan sembako bulanan</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="master-data-box">
+                        <h4>📌 Master Data Sumber Dana yang Tersedia:</h4>
+                        <div class="master-list">
+                            <div class="master-item">Dana Zakat</div>
+                            <div class="master-item">Dana Infaq/Sedekah</div>
+                            <div class="master-item">Dana CSR</div>
+                            <div class="master-item">Dana DSKL (Dana Sosial Keagamaan Lainnya)</div>
+                            <div class="master-item">Hak Amil</div>
+                            <div class="master-item">Dana Umum</div>
+                        </div>
+                    </div>
+                    
+                    <div class="master-data-box">
+                        <h4>📌 Master Data Bidang Program yang Tersedia:</h4>
+                        <div class="master-list">
+                            <div class="master-item">Pendidikan</div>
+                            <div class="master-item">Kesehatan</div>
+                            <div class="master-item">Kemanusiaan</div>
+                            <div class="master-item">Ekonomi</div>
+                            <div class="master-item">Dakwah dan Advokasi</div>
+                            <div class="master-item">Lingkungan</div>
+                            <div class="master-item">Infrastruktur Sosial</div>
+                            <div class="master-item">Operasional Lembaga</div>
+                        </div>
+                    </div>
+                    
+                    <div class="master-data-box">
+                        <h4>📌 Master Data Asnaf (8 Golongan Penerima Zakat):</h4>
+                        <div class="master-list">
+                            <div class="master-item">Fakir - Tidak mempunyai harta dan tenaga</div>
+                            <div class="master-item">Miskin - Tidak cukup penghidupannya</div>
+                            <div class="master-item">Amil - Pengelola zakat</div>
+                            <div class="master-item">Muallaf - Orang yang baru masuk Islam</div>
+                            <div class="master-item">Riqab - Memerdekakan budak</div>
+                            <div class="master-item">Gharimin - Orang yang berhutang</div>
+                            <div class="master-item">Fisabilillah - Berjuang di jalan Allah</div>
+                            <div class="master-item">Ibnu Sabil - Kehabisan biaya di perjalanan</div>
+                        </div>
+                    </div>
+                    
+                    <h3>✅ Contoh Data yang Benar</h3>
+                    
+                    <div class="example-box">
+                        <h4>📊 Contoh Format Excel untuk Import Program Penyaluran</h4>
+                        
+                        <div class="excel-wrapper">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th class="row-number">#</th>
+                                        <th>tanggal_penyaluran</th>
+                                        <th>nama_program</th>
+                                        <th>jumlah_dana</th>
+                                        <th>sumber_dana</th>
+                                        <th>asnaf</th>
+                                        <th>bidang_program</th>
+                                        <th>jenis_donasi</th>
+                                        <th>penerima_manfaat_individu</th>
+                                        <th>penerima_manfaat_lembaga</th>
+                                        <th>jumlah_penerima_manfaat</th>
+                                        <th>lokasi_penyaluran</th>
+                                        <th>keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="row-number">1</td>
+                                        <td>15/01/2025</td>
+                                        <td>Bantuan Sembako Untuk Fakir Miskin</td>
+                                        <td>1500000</td>
+                                        <td>Dana Zakat</td>
+                                        <td>Fakir</td>
+                                        <td>Kemanusiaan</td>
+                                        <td></td>
+                                        <td>Pak Samsul</td>
+                                        <td></td>
+                                        <td>1</td>
+                                        <td>Kelurahan Jelmu, Kec. Jelutung, Kota Jambi</td>
+                                        <td>Bantuan sembako bulanan untuk warga kurang mampu</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">2</td>
+                                        <td>20/02/2025</td>
+                                        <td>Santunan Pendidikan Anak Yatim</td>
+                                        <td>5000000</td>
+                                        <td>Dana Infaq/Sedekah</td>
+                                        <td></td>
+                                        <td>Pendidikan</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>Yayasan Nurul Harapan Jambi</td>
+                                        <td>25</td>
+                                        <td>Jl. Jenderal Sudirman No. 88, Telanaipura</td>
+                                        <td>Program beasiswa untuk 25 anak yatim tingkat SD-SMP</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">3</td>
+                                        <td>10/03/2025</td>
+                                        <td>Bantuan Modal Usaha Pedagang Kecil</td>
+                                        <td>3000000</td>
+                                        <td>Dana Zakat</td>
+                                        <td>Miskin</td>
+                                        <td>Ekonomi</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>Kelompok Usaha Mandiri Kenali Besar</td>
+                                        <td>10</td>
+                                        <td>Kelurahan Kenali Besar, Kec. Kota Baru, Jambi</td>
+                                        <td>Bantuan modal usaha untuk 10 KK pedagang kecil</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="row-number">4</td>
+                                        <td>05/02/2025</td>
+                                        <td>Beasiswa Mahasiswa Kurang Mampu</td>
+                                        <td>4000000</td>
+                                        <td>Dana Infaq/Sedekah</td>
+                                        <td></td>
+                                        <td>Pendidikan</td>
+                                        <td>Infaq Terikat</td>
+                                        <td></td>
+                                        <td>Universitas Jambi</td>
+                                        <td>8</td>
+                                        <td>Kelurahan Menteng, Jakarta Pusat</td>
+                                        <td>Beasiswa untuk 20 siswa kurang mampu</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <span class="alert-icon">🚫</span>
+                        <div>
+                            <strong>PENTING!</strong><br>
+                            • Untuk sumber dana <strong>"Dana Zakat"</strong>, kolom <strong>asnaf WAJIB diisi</strong><br>
+                            • Pastikan saldo sumber dana mencukupi sebelum import<br>
+                            • Jumlah dana tidak boleh melebihi saldo yang tersedia<br>
+                            • Kode program akan di-generate otomatis (format: PP2501XXXXXX)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB TIPS -->
+            <div id="tips" class="tab-content">
+                <div class="section">
+                    <h2>Tips & Troubleshooting</h2>
+                    
+                    <h3>💡 Tips Penting Agar Import Berhasil</h3>
+                    
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <div>
+                            <strong>Tip #1: Selalu Unduh Template Terlebih Dahulu</strong><br>
+                            Template Excel sudah berisi contoh data yang benar. Gunakan sebagai panduan agar tidak salah format.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <div>
+                            <strong>Tip #2: Siapkan Data Induk Dulu</strong><br>
+                            Sebelum import, pastikan semua data induk sudah lengkap (seperti: Daftar Pekerjaan, Jenis Donasi, Metode Pembayaran, dan lain-lain).
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <div>
+                            <strong>Tip #3: Import Sedikit Demi Sedikit</strong><br>
+                            Untuk data yang banyak, import bertahap saja (50-100 baris per file). Ini lebih mudah jika ada kesalahan.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <div>
+                            <strong>Tip #4: Urutan yang Benar</strong><br>
+                            1. Import <strong>Donatur</strong> terlebih dahulu<br>
+                            2. Pastikan ada saldo di menu Sumber Dana<br>
+                            3. Baru import <strong>Donasi</strong><br>
+                            4. Terakhir import <strong>Program Penyaluran</strong>
+                        </div>
+                    </div>
+                    
+                    <h3>❓ Pertanyaan yang Sering Diajukan (FAQ)</h3>
+                    
+                    <div class="example-box">
+                        <h4>T: Kenapa data saya tidak masuk setelah import?</h4>
+                        <p><strong>J:</strong> Periksa hal-hal berikut:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Kolom yang wajib diisi sudah terisi semua</li>
+                            <li>Format data sudah benar (tanggal, angka, dan lain-lain)</li>
+                            <li>Data yang dihubungkan sudah ada (contoh: kode donatur, jenis donasi)</li>
+                            <li>Tidak ada data yang sama/duplikat (nomor HP, email)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="example-box">
+                        <h4>T: Muncul pesan "Donatur tidak ditemukan" saat import donasi?</h4>
+                        <p><strong>J:</strong> Pastikan kode donatur yang Anda ketik benar-benar sudah ada di sistem. Buka menu Donatur untuk melihat daftar kode yang ada.</p>
+                    </div>
+                    
+                    <div class="example-box">
+                        <h4>T: Muncul pesan "Jenis donasi tidak ditemukan"?</h4>
+                        <p><strong>J:</strong> Nama jenis donasi harus ditulis sama persis dengan yang ada di sistem. Perhatikan huruf besar/kecil dan spasi. Lihat daftar di panduan ini.</p>
+                    </div>
+                    
+                    <div class="example-box">
+                        <h4>Q: Bagaimana cara menulis tanggal yang benar?</h4>
+                        <p><strong>A:</strong> Ketik tanggal seperti biasa di Excel:</p>
+                        <div style="margin: 15px 0; padding: 15px; background: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 5px;">
+                            <strong style="font-size: 18px; color: #2e7d32;">Format Tanggal: DD/MM/YYYY</strong><br>
+                            <span style="font-size: 14px; color: #666;">Contoh: 17/12/2025 (artinya 17 Desember 2025)</span>
+                        </div>
+                        <p><strong>Cara yang benar:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>✅ Ketik langsung: <strong>17/12/2025</strong> di kolom Excel</li>
+                            <li>✅ Atau ketik: <strong>17-12-2025</strong> (Excel akan ubah sendiri jadi 17/12/2025)</li>
+                            <li>✅ Biarkan Excel yang atur formatnya, jangan diubah-ubah</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>⚠️ Yang perlu dihindari:</strong></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>❌ Jangan ubah format sel menjadi Text</li>
+                            <li>❌ Jangan ketik tanda petik (') di depan tanggal</li>
+                            <li>❌ Pastikan formatnya DD/MM/YYYY (bukan MM/DD/YYYY seperti format Amerika)</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>💡 Tips Mudah:</strong> Unduh template, Excel sudah diatur formatnya dengan benar. Tinggal ketik tanggal seperti biasa saja!</p>
+                    </div>
+                    
+                    <div class="example-box">
+                        <h4>T: Muncul pesan "Jumlah melebihi saldo tersedia"?</h4>
+                        <p><strong>J:</strong> Saldo dana tidak mencukupi. Pastikan sudah ada data donasi masuk sebelum melakukan penyaluran, atau kurangi jumlah yang disalurkan.</p>
+                    </div>
+                    
+                    <div class="example-box">
+                        <h4>T: Apakah bisa import ribuan data sekaligus?</h4>
+                        <p><strong>J:</strong> Sebaiknya maksimal 100-200 baris per file saja untuk menghindari proses yang terlalu lama. Untuk data lebih banyak, pisah menjadi beberapa file.</p>
+                    </div>
+                    
+                    <h3>🔧 Syarat File Excel yang Benar</h3>
+                    <ul style="margin-left: 20px; margin-top: 15px; line-height: 2;">
+                        <li>✅ Gunakan file dengan format <strong>.xlsx</strong> atau <strong>.xls</strong></li>
+                        <li>✅ Halaman pertama Excel yang akan dibaca sistem</li>
+                        <li>✅ Baris pertama adalah nama kolom (jangan dihapus)</li>
+                        <li>✅ Data mulai dari baris kedua ke bawah</li>
+                        <li>✅ Jangan ada baris kosong di tengah-tengah data</li>
+                        <li>✅ Jangan pakai perhitungan otomatis yang rumit</li>
+                        <li>❌ Jangan gabung-gabungkan kotak di area data</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <span class="alert-icon">📞</span>
+                        <div>
+                            <strong>Butuh Bantuan?</strong><br>
+                            Jika mengalami kendala yang tidak bisa diatasi:<br>
+                            • Hubungi petugas atau administrator sistem<br>
+                            • Sertakan foto/screenshot pesan kesalahan<br>
+                            • Sertakan file Excel yang bermasalah (jika bisa)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>LAZ Insan Madani</strong></p>
+            <p>Sistem Manajemen Donasi</p>
+            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                Terakhir diupdate: Desember 2025 | Versi 1.0
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            
+            tablinks = document.getElementsByClassName("nav-tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+<div class="text-center mt-4"><span class="text-xs text-gray-400 dark:text-gray-500 font-medium">Simadi v1.2 &mdash; LAZ Insan Madani</span></div><?php /**PATH /home/simadior/public_html/storage/framework/views/a1443d2acf140354160aac7516562580.blade.php ENDPATH**/ ?>

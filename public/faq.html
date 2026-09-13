@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - Sistem Madani | Pertanyaan yang Sering Diajukan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary: #8B5CF6;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        /* FAQ Container */
+        .faq-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .faq-intro {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .faq-intro h2 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .faq-intro p {
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        /* FAQ Categories */
+        .faq-category {
+            margin-bottom: 40px;
+        }
+
+        .category-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            font-size: 32px;
+        }
+
+        /* FAQ Item */
+        .faq-item {
+            margin-bottom: 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .faq-question {
+            padding: 20px 25px;
+            background: var(--light-gray);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .faq-question:hover {
+            background: #E5E7EB;
+        }
+
+        .faq-question.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .faq-toggle {
+            font-size: 24px;
+            font-weight: 700;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-question.active .faq-toggle {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 25px;
+            background: white;
+        }
+
+        .faq-answer.active {
+            max-height: 1000px;
+            padding: 20px 25px;
+        }
+
+        .faq-answer p {
+            color: var(--gray);
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .faq-answer ul, .faq-answer ol {
+            margin-left: 20px;
+            color: var(--gray);
+        }
+
+        .faq-answer li {
+            margin-bottom: 8px;
+        }
+
+        .faq-answer strong {
+            color: var(--dark);
+        }
+
+        /* WhatsApp Help Box */
+        .whatsapp-help {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 20px 60px rgba(37, 211, 102, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .whatsapp-help h2 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .whatsapp-help p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            opacity: 0.95;
+        }
+
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            color: #25D366;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        }
+
+        .whatsapp-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Floating WhatsApp Button */
+        .floating-whatsapp {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .floating-whatsapp a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .floating-whatsapp a:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6);
+        }
+
+        .floating-whatsapp svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(37, 211, 102, 0.7);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .faq-container {
+                padding: 25px;
+            }
+
+            .whatsapp-help {
+                padding: 30px 20px;
+            }
+
+            .whatsapp-help h2 {
+                font-size: 24px;
+            }
+
+            .floating-whatsapp {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>❓ FAQ</h1>
+            <p>Pertanyaan yang Sering Diajukan tentang Sistem Madani</p>
+        </div>
+
+        <!-- FAQ Container -->
+        <div class="faq-container">
+            <div class="faq-intro">
+                <h2>Temukan Jawaban Anda di Sini</h2>
+                <p>Kami telah mengumpulkan pertanyaan yang paling sering diajukan. Jika tidak menemukan jawaban, hubungi kami via WhatsApp!</p>
+            </div>
+
+            <!-- Category 1: Umum -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">🏠</span>
+                    <span>Pertanyaan Umum</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu Sistem Madani?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>Sistem Madani</strong> adalah platform digital terintegrasi yang dirancang khusus untuk mengelola seluruh proses penghimpunan dan penyaluran dana Zakat, Infaq, Sedekah, serta Dana Sosial Keagamaan Lainnya (DSKL) secara profesional, transparan, dan akuntabel.</p>
+                        <p>Sistem ini dibangun dengan teknologi <strong>Laravel Filament v3</strong> untuk memberikan pengalaman pengguna terbaik dengan antarmuka yang intuitif dan responsif.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Siapa saja yang bisa menggunakan sistem ini?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sistem ini digunakan oleh berbagai role pengguna:</p>
+                        <ul>
+                            <li><strong>Super Admin</strong> - Akses penuh ke semua fitur termasuk pengaturan sistem</li>
+                            <li><strong>Operator</strong> - Mengelola input donasi dan update data donatur</li>
+                            <li><strong>Finance</strong> - Melihat laporan keuangan dan mengelola penyaluran dana</li>
+                            <li><strong>Fundraiser</strong> - Melihat performa pribadi dan riwayat donasi</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara mendapatkan akun akses?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Akun akses diberikan oleh <strong>Administrator</strong> sistem. Hubungi admin atau IT support Anda untuk mendapatkan:</p>
+                        <ul>
+                            <li>Email login</li>
+                            <li>Password awal</li>
+                            <li>Role/permission yang sesuai</li>
+                        </ul>
+                        <p>Setelah menerima kredensial, Anda wajib mengganti password pada login pertama untuk keamanan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 2: Login & Akses -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">🔐</span>
+                    <span>Login & Keamanan Akun</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Saya lupa password, bagaimana cara reset?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Untuk reset password:</p>
+                        <ol>
+                            <li>Klik link <strong>"Forgot Password"</strong> di halaman login (jika tersedia)</li>
+                            <li>Masukkan email yang terdaftar di sistem</li>
+                            <li>Cek inbox email untuk link reset password</li>
+                            <li>Jika link tidak tersedia, hubungi <strong>Administrator</strong> untuk reset manual</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Kenapa saya tidak bisa login?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Beberapa penyebab umum:</p>
+                        <ul>
+                            <li><strong>Email/password salah</strong> - Periksa kembali kredensial Anda</li>
+                            <li><strong>Akun belum aktif</strong> - Hubungi admin untuk aktivasi</li>
+                            <li><strong>Caps Lock aktif</strong> - Password bersifat case-sensitive</li>
+                            <li><strong>Browser cache</strong> - Coba clear cache atau gunakan incognito mode</li>
+                            <li><strong>Koneksi internet</strong> - Pastikan internet stabil</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara membuat password yang aman?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Tips membuat password yang kuat:</p>
+                        <ul>
+                            <li>Minimal <strong>8 karakter</strong></li>
+                            <li>Kombinasi huruf <strong>BESAR</strong> dan <strong>kecil</strong></li>
+                            <li>Sertakan <strong>angka</strong> (0-9)</li>
+                            <li>Tambahkan <strong>simbol</strong> (!@#$%^&*)</li>
+                            <li>Jangan gunakan informasi pribadi (tanggal lahir, nama, dll)</li>
+                            <li>Jangan gunakan password yang sama untuk akun lain</li>
+                        </ul>
+                        <p>Contoh password kuat: <code>M@dani2025!Secure</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 3: Donasi -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">💰</span>
+                    <span>Manajemen Donasi</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara input donasi baru?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Langkah input donasi:</p>
+                        <ol>
+                            <li>Buka menu <strong>Program → Donasi</strong></li>
+                            <li>Klik tombol <strong>"Buat Baru"</strong></li>
+                            <li>Isi form dengan lengkap (4 section):
+                                <ul>
+                                    <li><strong>Informasi Donatur</strong> - Pilih/tambah donatur, jenis donasi, tanggal</li>
+                                    <li><strong>Detail Donasi</strong> - Jumlah/nilai, kategori (jika ada)</li>
+                                    <li><strong>Metode Pembayaran</strong> - Cara bayar, fundraiser, bukti transfer</li>
+                                    <li><strong>Status Konfirmasi</strong> - Pending/Verified/Rejected</li>
+                                </ul>
+                            </li>
+                            <li>Klik <strong>"Simpan"</strong></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa perbedaan Zakat, Infaq Terikat, dan Infaq Tidak Terikat?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>Zakat:</strong> Dana wajib yang harus disalurkan ke 8 asnaf (fakir, miskin, amil, mualaf, riqab, gharim, fisabilillah, ibnu sabil)</p>
+                        <p><strong>Infaq Terikat:</strong> Donasi sukarela dengan tujuan spesifik yang ditentukan donatur (contoh: untuk pembangunan masjid, beasiswa, dll)</p>
+                        <p><strong>Infaq Tidak Terikat:</strong> Donasi sukarela tanpa ketentuan khusus, bisa disalurkan untuk program apapun sesuai kebutuhan</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara membuat donasi anonim?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Saat input donasi, aktifkan toggle <strong>"Sembunyikan Nama Donatur"</strong> di section Informasi Donatur.</p>
+                        <p>Donasi akan tercatat sebagai <strong>"Hamba Allah"</strong> di sistem dan laporan, tetapi data donatur tetap tersimpan untuk keperluan internal administrasi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara input donasi barang?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Untuk donasi barang:</p>
+                        <ol>
+                            <li>Pilih <strong>Jenis Donasi</strong> yang memiliki flag "Donasi Barang"</li>
+                            <li>Field <strong>"Jumlah Donasi (Uang)"</strong> akan disembunyikan</li>
+                            <li>Isi field <strong>"Deskripsi Barang"</strong> - jelaskan detail barang (jenis, jumlah, kondisi)</li>
+                            <li>Isi field <strong>"Perkiraan Nilai Barang"</strong> - estimasi nilai dalam Rupiah</li>
+                        </ol>
+                        <p>Contoh: "Beras 10 kg kualitas premium + Minyak goreng 5 liter"</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 4: Donatur -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">👥</span>
+                    <span>Manajemen Donatur</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu kode donatur dan bagaimana formatnya?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Kode donatur adalah <strong>ID unik</strong> yang otomatis digenerate sistem dengan format:</p>
+                        <p><code><strong>DN</strong> + <strong>YY</strong> + <strong>XXXX</strong></code></p>
+                        <p>Contoh: <code>DN250001</code> (Donatur pertama tahun 2025)</p>
+                        <ul>
+                            <li><strong>DN</strong> = Prefix tetap untuk Donatur</li>
+                            <li><strong>25</strong> = Tahun pendaftaran (2025)</li>
+                            <li><strong>0001</strong> = Nomor urut donatur di tahun tersebut</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana sistem segmentasi donatur bekerja?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sistem otomatis mengelompokkan donatur berdasarkan <strong>total kontribusi</strong>:</p>
+                        <ul>
+                            <li><strong>👑 PLATINUM</strong> - Total donasi > Rp 10.000.000</li>
+                            <li><strong>🥇 GOLD</strong> - Total donasi Rp 5.000.000 - Rp 10.000.000</li>
+                            <li><strong>🥈 SILVER</strong> - Total donasi Rp 1.000.000 - Rp 5.000.000</li>
+                            <li><strong>🥉 BRONZE</strong> - Total donasi Rp 500.000 - Rp 1.000.000</li>
+                            <li><strong>⭐ REGULAR</strong> - Total donasi < Rp 500.000</li>
+                        </ul>
+                        <p>Segmentasi ini membantu strategi retention dan komunikasi dengan donatur.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara menggabungkan data donatur duplikat?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sistem memiliki fitur <strong>anti-duplikasi otomatis</strong>:</p>
+                        <ul>
+                            <li>Saat input nama, sistem akan <strong>cek similarity</strong> (kemiripan >= 80%)</li>
+                            <li>Jika ditemukan nama mirip, muncul <strong>notifikasi warning</strong></li>
+                            <li>Nomor HP <strong>unik</strong> - tidak boleh duplikat</li>
+                        </ul>
+                        <p>Jika sudah terlanjur duplikat, hubungi <strong>Admin</strong> untuk merge data secara manual.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 5: Invoice -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">📄</span>
+                    <span>Invoice & Kwitansi</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara kirim invoice ke donatur?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Setelah donasi <strong>terverifikasi</strong>:</p>
+                        <ol>
+                            <li>Buka menu <strong>Program → Donasi</strong></li>
+                            <li>Cari donasi yang sudah verified</li>
+                            <li>Klik tombol <strong>"Kirim Invoice"</strong></li>
+                            <li>Pilih metode pengiriman:
+                                <ul>
+                                    <li><strong>📱 WhatsApp</strong> - Kirim otomatis ke nomor HP donatur</li>
+                                    <li><strong>⬇️ Download</strong> - Download PDF untuk dicetak/dikirim manual</li>
+                                </ul>
+                            </li>
+                            <li>Tambahkan catatan (opsional)</li>
+                            <li>Klik <strong>"Kirim"</strong></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa saja yang tercantum di invoice?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Invoice donasi berisi:</p>
+                        <ul>
+                            <li><strong>Nomor Invoice</strong> - ID unik transaksi</li>
+                            <li><strong>Tanggal</strong> - Tanggal donasi</li>
+                            <li><strong>Data Donatur</strong> - Nama, alamat, HP, email</li>
+                            <li><strong>Jenis Donasi</strong> - Zakat/Infaq/Sedekah/DSKL/CSR</li>
+                            <li><strong>Jumlah</strong> - Nominal dalam Rupiah (terbilang)</li>
+                            <li><strong>Metode Pembayaran</strong> - Transfer/Tunai/dll</li>
+                            <li><strong>Tanda Tangan Digital</strong> - Cap dan TTD pengurus</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara melihat riwayat pengiriman invoice?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Di tabel donasi, klik tombol <strong>"Riwayat Invoice"</strong> untuk melihat:</p>
+                        <ul>
+                            <li>Tanggal pengiriman</li>
+                            <li>Metode (WhatsApp/Download)</li>
+                            <li>Status (Pending/Terkirim/Tersampaikan/Gagal)</li>
+                            <li>Nomor tujuan (HP/Email)</li>
+                            <li>Error message (jika gagal)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 6: Penyaluran Dana -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">🔄</span>
+                    <span>Penyaluran Dana & Program</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara membuat program penyaluran dana?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Gunakan <strong>Wizard 3 Step</strong> di menu Program → Penyaluran Dana:</p>
+                        <ol>
+                            <li><strong>Step 1: Informasi Program</strong>
+                                <ul>
+                                    <li>Nama program (contoh: "Santunan Anak Yatim Ramadan 2025")</li>
+                                    <li>Tanggal penyaluran</li>
+                                    <li>Lokasi penyaluran</li>
+                                    <li>Keterangan detail program</li>
+                                </ul>
+                            </li>
+                            <li><strong>Step 2: Sumber & Alokasi Dana</strong>
+                                <ul>
+                                    <li>Pilih sumber dana (Zakat/Infaq/DSKL/CSR)</li>
+                                    <li>Lihat saldo tersedia real-time</li>
+                                    <li>Input jumlah dana (otomatis validasi tidak boleh > saldo)</li>
+                                    <li>Pilih Asnaf (jika dana zakat)</li>
+                                    <li>Pilih bidang program</li>
+                                </ul>
+                            </li>
+                            <li><strong>Step 3: Detail Penerima</strong>
+                                <ul>
+                                    <li>Tipe: Individu atau Lembaga</li>
+                                    <li>Nama penerima</li>
+                                    <li>Jumlah penerima manfaat</li>
+                                    <li>Upload bukti penyaluran</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu 8 Asnaf dan kapan harus dipilih?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>8 Asnaf</strong> adalah golongan penerima zakat yang wajib dipilih saat menyalurkan <strong>Dana Zakat</strong>:</p>
+                        <ol>
+                            <li><strong>Fakir</strong> - Orang yang tidak memiliki harta dan tenaga untuk memenuhi kebutuhan</li>
+                            <li><strong>Miskin</strong> - Orang yang memiliki harta/penghasilan kurang dari kebutuhan</li>
+                            <li><strong>Amil</strong> - Pengelola zakat (Hak Amil)</li>
+                            <li><strong>Mualaf</strong> - Orang yang baru masuk Islam atau lemah imannya</li>
+                            <li><strong>Riqab</strong> - Budak atau hamba sahaya (konteks modern: korban human trafficking)</li>
+                            <li><strong>Gharim</strong> - Orang yang terlilit hutang untuk kebutuhan mendesak</li>
+                            <li><strong>Fisabilillah</strong> - Untuk kepentingan agama Islam</li>
+                            <li><strong>Ibnu Sabil</strong> - Musafir yang kehabisan bekal dalam perjalanan</li>
+                        </ol>
+                        <p><strong>Penting:</strong> Field Asnaf hanya muncul untuk Dana Zakat. Untuk Infaq/Sedekah/DSKL, tidak perlu pilih Asnaf.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Kenapa saya tidak bisa input jumlah penyaluran tertentu?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sistem memiliki <strong>validasi otomatis</strong>:</p>
+                        <ul>
+                            <li>Jumlah penyaluran <strong>tidak boleh melebihi</strong> saldo tersedia</li>
+                            <li>Saldo tersedia = Total Penerimaan - Penyaluran Sebelumnya - Hak Amil</li>
+                            <li>Cek widget "Saldo Tersedia" yang muncul setelah pilih sumber dana</li>
+                        </ul>
+                        <p><strong>Contoh:</strong> Jika saldo Dana Zakat Rp 50 juta, Anda tidak bisa input penyaluran Rp 60 juta.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu Penyaluran Langsung?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>Penyaluran Langsung</strong> adalah dana yang disalurkan <strong>tanpa melalui proses penghimpunan</strong> terlebih dahulu.</p>
+                        <p>Contoh kasus: Ada donatur yang ingin langsung menyalurkan bantuan ke penerima tertentu tanpa dikelola lembaga.</p>
+                        <p>Dana ini masuk ke <strong>Dana Umum</strong> dan tidak diperhitungkan dalam statistik penghimpunan utama.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 7: Hak Amil -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">💼</span>
+                    <span>Sistem Hak Amil</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu Hak Amil dan bagaimana perhitungannya?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>Hak Amil</strong> adalah bagian dana yang boleh digunakan untuk operasional lembaga pengelola zakat/donasi.</p>
+                        <p><strong>Perhitungan Otomatis:</strong></p>
+                        <ul>
+                            <li>Setiap sumber dana punya <strong>persentase hak amil</strong> sendiri (setting di Pengaturan Hak Amil)</li>
+                            <li>Contoh: Dana Zakat = 12.5%, Dana Infaq = 15%, Dana DSKL = 10%</li>
+                            <li>Rumus: <code>Hak Amil = Total Penerimaan × Persentase Hak Amil</code></li>
+                        </ul>
+                        <p><strong>Contoh:</strong> Total Dana Zakat Rp 100 juta × 12.5% = Hak Amil Rp 12,5 juta</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara menggunakan Hak Amil?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Langkah penggunaan Hak Amil:</p>
+                        <ol>
+                            <li>Buka menu <strong>Laporan & Keuangan → Penggunaan Hak Amil</strong></li>
+                            <li>Klik <strong>"Buat Baru"</strong></li>
+                            <li>Pilih <strong>Jenis Penggunaan</strong> (Gaji, Operasional, Marketing, dll)</li>
+                            <li>Input <strong>Jumlah</strong> (tidak boleh > sisa hak amil)</li>
+                            <li>Upload <strong>Bukti</strong> (nota/invoice/kwitansi)</li>
+                            <li>Tambahkan <strong>Keterangan</strong></li>
+                            <li>Klik <strong>"Simpan"</strong></li>
+                        </ol>
+                        <p>Sistem otomatis mengurangi saldo hak amil yang tersedia.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara monitoring Hak Amil?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Lihat <strong>Widget Hak Amil Overview</strong> di Dashboard yang menampilkan:</p>
+                        <ul>
+                            <li><strong>Total Hak Amil</strong> - Bagian yang berhak diterima</li>
+                            <li><strong>Sudah Digunakan</strong> - Total penggunaan sampai saat ini</li>
+                            <li><strong>Sisa Tersedia</strong> - Saldo yang bisa digunakan</li>
+                            <li><strong>Persentase Penggunaan</strong> - Progress bar visual</li>
+                        </ul>
+                        <p>Filter berdasarkan periode untuk analisis lebih detail.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Kenapa persentase Hak Amil berbeda-beda?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Persentase disesuaikan dengan <strong>regulasi dan kebijakan lembaga</strong>:</p>
+                        <ul>
+                            <li><strong>Dana Zakat</strong> - Maksimal 12.5% (sesuai ketentuan syariah)</li>
+                            <li><strong>Dana Infaq/Sedekah</strong> - Bisa lebih fleksibel (10-20%)</li>
+                            <li><strong>Dana CSR/DSKL</strong> - Sesuai kesepakatan dengan donatur</li>
+                        </ul>
+                        <p>Setting ini diatur oleh <strong>Super Admin</strong> di menu Pengaturan Hak Amil.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 8: Fundraiser -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">🤝</span>
+                    <span>Fundraiser & Performa</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara menambahkan fundraiser baru?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Langkah menambahkan fundraiser:</p>
+                        <ol>
+                            <li>Buka menu <strong>Program → Fundraiser</strong></li>
+                            <li>Klik <strong>"Buat Baru"</strong></li>
+                            <li>Isi data:
+                                <ul>
+                                    <li><strong>Nama Fundraiser</strong></li>
+                                    <li><strong>Nomor Identitas</strong> (KTP/SIM)</li>
+                                    <li><strong>Nomor HP</strong></li>
+                                    <li><strong>Alamat</strong></li>
+                                    <li><strong>User Akun</strong> (opsional - jika punya akun login)</li>
+                                    <li><strong>Status Aktif</strong> (toggle ON)</li>
+                                </ul>
+                            </li>
+                            <li>Klik <strong>"Simpan"</strong></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara assign donasi ke fundraiser?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Saat <strong>input donasi</strong>, di section <strong>Metode Pembayaran</strong>:</p>
+                        <ul>
+                            <li>Ada field <strong>"Fundraiser"</strong> (dropdown)</li>
+                            <li>Pilih nama fundraiser yang menghimpun donasi tersebut</li>
+                            <li>Jika donasi tidak melalui fundraiser, biarkan kosong</li>
+                        </ul>
+                        <p>Donasi yang di-assign akan otomatis masuk ke perhitungan performa fundraiser.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana melihat performa fundraiser?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Lihat di <strong>Widget Fundraiser Performance</strong> di Dashboard:</p>
+                        <ul>
+                            <li><strong>Ranking</strong> - Urutan berdasarkan total kontribusi</li>
+                            <li><strong>Total Kontribusi</strong> - Jumlah dana yang berhasil dihimpun</li>
+                            <li><strong>Jumlah Donatur</strong> - Berapa donatur unik yang berdonasi melalui fundraiser</li>
+                            <li><strong>Rata-rata Donasi</strong> - Average per transaksi</li>
+                        </ul>
+                        <p>Filter berdasarkan periode untuk evaluasi bulanan/tahunan.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apakah fundraiser bisa login ke sistem?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ya, jika <strong>diberi akun user</strong> oleh Admin:</p>
+                        <ul>
+                            <li>Saat tambah/edit fundraiser, hubungkan dengan <strong>User Akun</strong></li>
+                            <li>User tersebut akan dapat role <strong>"Fundraiser"</strong></li>
+                            <li>Fundraiser bisa login dan melihat:
+                                <ul>
+                                    <li>Dashboard personal</li>
+                                    <li>Performa pribadi</li>
+                                    <li>Riwayat donasi yang dihimpun</li>
+                                    <li>Ranking dibanding fundraiser lain</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p><strong>Catatan:</strong> Fundraiser tidak bisa input donasi, hanya melihat performa.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 9: Import/Export -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">📊</span>
+                    <span>Import & Export Data</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara import data donasi dari Excel?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Langkah import donasi:</p>
+                        <ol>
+                            <li>Buka menu <strong>Program → Donasi</strong></li>
+                            <li>Klik tombol <strong>"Import"</strong> di atas tabel</li>
+                            <li>Download <strong>Template Excel</strong> (jika belum punya)</li>
+                            <li>Isi data sesuai format template:
+                                <ul>
+                                    <li>Kolom wajib: Tanggal, Nama Donatur, Jenis Donasi, Jumlah</li>
+                                    <li>Kolom opsional: HP, Email, Metode Bayar, Fundraiser, Catatan</li>
+                                </ul>
+                            </li>
+                            <li>Upload file Excel yang sudah diisi</li>
+                            <li>Klik <strong>"Proses Import"</strong></li>
+                            <li>Sistem akan validasi dan tampilkan preview</li>
+                            <li>Review data, lalu klik <strong>"Konfirmasi Import"</strong></li>
+                        </ol>
+                        <p><strong>Tips:</strong> Import maksimal 500 baris per file untuk performa optimal.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara export data ke Excel?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Langkah export data:</p>
+                        <ol>
+                            <li>Buka modul yang ingin diexport (Donasi/Donatur/Penyaluran/dll)</li>
+                            <li>Gunakan <strong>filter</strong> untuk memilih data spesifik (opsional)</li>
+                            <li>Centang data yang ingin diexport (atau select all)</li>
+                            <li>Klik tombol <strong>dropdown (⋮)</strong> di atas tabel</li>
+                            <li>Pilih <strong>"Export"</strong></li>
+                            <li>File Excel akan terdownload otomatis ke folder Downloads</li>
+                        </ol>
+                        <p><strong>Format Export:</strong> .xlsx dengan semua kolom yang tampil di tabel.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Kenapa import gagal atau ada data yang error?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Penyebab umum error import:</p>
+                        <ul>
+                            <li><strong>Format tanggal salah</strong> - Gunakan format DD/MM/YYYY atau YYYY-MM-DD</li>
+                            <li><strong>Jenis Donasi tidak ditemukan</strong> - Pastikan nama jenis donasi sesuai dengan data di sistem</li>
+                            <li><strong>Donatur duplikat</strong> - Nomor HP sudah terdaftar dengan nama berbeda</li>
+                            <li><strong>Jumlah format salah</strong> - Gunakan angka tanpa titik/koma (contoh: 100000 bukan 100.000)</li>
+                            <li><strong>Kolom wajib kosong</strong> - Periksa semua field yang required</li>
+                        </ul>
+                        <p>Sistem akan tampilkan <strong>detail error</strong> per baris untuk memudahkan perbaikan.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apakah bisa import donatur secara bulk?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ya! Sama seperti import donasi:</p>
+                        <ul>
+                            <li>Buka menu <strong>Program → Donatur</strong></li>
+                            <li>Klik <strong>"Import"</strong></li>
+                            <li>Download template, isi data donatur</li>
+                            <li>Upload dan proses import</li>
+                        </ul>
+                        <p><strong>Penting:</strong> Sistem otomatis cek duplikasi berdasarkan nomor HP dan similarity nama ≥80%.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 10: Dashboard & Analytics -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">📈</span>
+                    <span>Dashboard & Analytics</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara filter statistik berdasarkan periode?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Di widget <strong>Ringkasan Statistik Utama</strong>, gunakan dropdown filter periode:</p>
+                        <ul>
+                            <li><strong>Keseluruhan</strong> - Semua data dari awal</li>
+                            <li><strong>Tahun Ini</strong> - Januari s/d sekarang tahun berjalan</li>
+                            <li><strong>Bulan Ini</strong> - Tanggal 1 s/d hari ini bulan berjalan</li>
+                            <li><strong>Custom Range</strong> - Pilih tanggal mulai dan selesai sendiri</li>
+                        </ul>
+                        <p>Semua angka statistik akan update otomatis sesuai periode yang dipilih.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu segmentasi RFM di Top Donatur?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>RFM Analysis</strong> adalah metode segmentasi donatur berdasarkan:</p>
+                        <ul>
+                            <li><strong>Recency (R)</strong> - Kapan terakhir donasi (semakin baru semakin baik)</li>
+                            <li><strong>Frequency (F)</strong> - Seberapa sering donasi (semakin sering semakin loyal)</li>
+                            <li><strong>Monetary (M)</strong> - Total nilai donasi (semakin besar semakin valuable)</li>
+                        </ul>
+                        <p><strong>Hasil Segmentasi:</strong></p>
+                        <ul>
+                            <li>👑 <strong>Platinum</strong> - Donatur premium (R tinggi + F tinggi + M tinggi)</li>
+                            <li>🥇 <strong>Gold</strong> - Donatur loyal (kombinasi 2 dari 3 tinggi)</li>
+                            <li>🥈 <strong>Silver</strong> - Donatur potensial (1 metrik tinggi)</li>
+                            <li>🥉 <strong>Bronze</strong> - Donatur baru/jarang</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara melihat detail donasi per donatur?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ada 2 cara:</p>
+                        <p><strong>Cara 1 - Dari Widget Top Donatur:</strong></p>
+                        <ul>
+                            <li>Klik pada angka <strong>Total Donasi</strong> di tabel</li>
+                            <li>Modal akan terbuka dengan daftar lengkap semua donasi</li>
+                            <li>Lihat tanggal, jenis donasi, nominal, metode bayar</li>
+                        </ul>
+                        <p><strong>Cara 2 - Dari Halaman Donatur:</strong></p>
+                        <ul>
+                            <li>Buka <strong>Program → Donatur</strong></li>
+                            <li>Klik nama donatur untuk lihat detail</li>
+                            <li>Scroll ke tab <strong>"Donasi"</strong></li>
+                            <li>Lihat tabel lengkap riwayat donasi donatur tersebut</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apa itu Insight Strategis di dashboard?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p><strong>Insight Strategis</strong> adalah rekomendasi otomatis dari sistem berdasarkan analisis data:</p>
+                        <ul>
+                            <li><strong>🚨 Prioritas Tinggi (Merah)</strong> - Alert untuk donatur Platinum yang tidak donasi 3 bulan → perlu follow-up retention</li>
+                            <li><strong>⚠️ Perhatian (Kuning)</strong> - Donatur Silver konsisten → potensi upgrade ke Gold dengan pendekatan personal</li>
+                            <li><strong>📊 Informasi (Biru)</strong> - Trend positif, donatur baru, peningkatan frekuensi, dll</li>
+                        </ul>
+                        <p>Insight ini membantu strategi fundraising dan donor management.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 11: Masalah Teknis -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">⚙️</span>
+                    <span>Troubleshooting Teknis</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Kenapa sistem loading lambat?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Penyebab dan solusi:</p>
+                        <ul>
+                            <li><strong>Koneksi internet lambat</strong> - Cek kecepatan internet (minimal 2 Mbps)</li>
+                            <li><strong>Browser cache penuh</strong> - Clear cache browser (Ctrl+Shift+Del)</li>
+                            <li><strong>Banyak tab terbuka</strong> - Tutup tab yang tidak perlu</li>
+                            <li><strong>Server overload</strong> - Coba akses di waktu yang berbeda</li>
+                            <li><strong>Browser outdated</strong> - Update ke versi terbaru (Chrome/Firefox/Edge)</li>
+                            <li><strong>Banyak filter aktif</strong> - Reset filter yang tidak perlu</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Data yang saya input hilang, kenapa?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Kemungkinan penyebab:</p>
+                        <ul>
+                            <li><strong>Belum klik "Simpan"</strong> - Pastikan selalu klik tombol Simpan</li>
+                            <li><strong>Session timeout</strong> - Login kembali jika sudah lama idle (>30 menit)</li>
+                            <li><strong>Koneksi terputus</strong> - Pastikan internet stabil saat input</li>
+                            <li><strong>Browser crash</strong> - Sistem tidak auto-save, harus manual save</li>
+                            <li><strong>Validasi error</strong> - Cek notifikasi error di form</li>
+                        </ul>
+                        <p><strong>Tips:</strong> Untuk data penting, salin ke notepad dulu sebelum input ke sistem.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Kenapa invoice WhatsApp gagal terkirim?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Penyebab umum dan solusi:</p>
+                        <ul>
+                            <li><strong>Nomor HP tidak valid</strong> - Pastikan format 628xxx (tanpa +, spasi, atau -)</li>
+                            <li><strong>Donatur tidak punya HP</strong> - Gunakan opsi "Download" lalu kirim manual</li>
+                            <li><strong>Nomor tidak terdaftar di WhatsApp</strong> - Verifikasi nomor donatur</li>
+                            <li><strong>WhatsApp Business API limit</strong> - Tunggu beberapa menit lalu coba lagi</li>
+                        </ul>
+                        <p>Cek status pengiriman di menu <strong>Riwayat Invoice</strong> untuk detail error.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara backup data?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Backup data dilakukan dengan 2 cara:</p>
+                        <p><strong>Manual Export (User):</strong></p>
+                        <ul>
+                            <li>Export data per modul (Donasi, Donatur, Penyaluran) ke Excel</li>
+                            <li>Simpan file di storage aman (Google Drive/OneDrive)</li>
+                            <li>Lakukan export minimal 1x seminggu</li>
+                        </ul>
+                        <p><strong>Database Backup (Admin/IT):</strong></p>
+                        <ul>
+                            <li>Hubungi Administrator untuk backup database lengkap</li>
+                            <li>Backup otomatis dilakukan sistem setiap hari (jika dikonfigurasi)</li>
+                            <li>File backup .sql disimpan di server</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Saya tidak bisa akses menu tertentu, kenapa?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ini karena <strong>Role & Permission</strong> Anda:</p>
+                        <ul>
+                            <li>Setiap user memiliki <strong>role</strong> tertentu (Admin/Operator/Finance/Fundraiser)</li>
+                            <li>Setiap role punya <strong>permission</strong> berbeda untuk akses menu</li>
+                            <li>Contoh: Fundraiser tidak bisa input donasi, hanya lihat performa</li>
+                        </ul>
+                        <p>Jika Anda butuh akses tambahan, hubungi <strong>Super Admin</strong> untuk request permission.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana cara report bug atau request fitur?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Untuk melaporkan masalah atau request fitur baru:</p>
+                        <ol>
+                            <li>Klik tombol <strong>WhatsApp</strong> di halaman ini</li>
+                            <li>Jelaskan masalah dengan detail:
+                                <ul>
+                                    <li>Apa yang terjadi?</li>
+                                    <li>Kapan terjadi?</li>
+                                    <li>Di menu/halaman mana?</li>
+                                    <li>Langkah untuk reproduksi</li>
+                                    <li>Screenshot (jika ada)</li>
+                                </ul>
+                            </li>
+                            <li>Tim support akan respond maksimal 1x24 jam</li>
+                        </ol>
+                        <p><strong>Tips:</strong> Sertakan screenshot atau screen recording untuk mempercepat troubleshooting.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 12: Keamanan & Privasi -->
+            <div class="faq-category">
+                <div class="category-title">
+                    <span class="category-icon">🔒</span>
+                    <span>Keamanan & Privasi Data</span>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apakah data donatur aman di sistem ini?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ya! Sistem dilengkapi dengan multiple layer security:</p>
+                        <ul>
+                            <li><strong>HTTPS/SSL Encryption</strong> - Semua data terenkripsi saat transmisi</li>
+                            <li><strong>Database Encryption</strong> - Data sensitif terenkripsi di database</li>
+                            <li><strong>Role-Based Access Control</strong> - User hanya bisa akses sesuai permission</li>
+                            <li><strong>Audit Trail</strong> - Semua aktivitas tercatat (siapa, kapan, apa)</li>
+                            <li><strong>Session Management</strong> - Auto logout setelah idle 30 menit</li>
+                            <li><strong>Password Hashing</strong> - Password disimpan dalam bentuk hash, tidak plain text</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Siapa saja yang bisa melihat data donatur?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Akses data donatur dibatasi berdasarkan role:</p>
+                        <ul>
+                            <li><strong>Super Admin</strong> - Akses penuh semua data</li>
+                            <li><strong>Operator</strong> - Bisa lihat, tambah, edit data donatur</li>
+                            <li><strong>Finance</strong> - Bisa lihat data donatur (read-only)</li>
+                            <li><strong>Fundraiser</strong> - Hanya bisa lihat donatur yang ia himpun</li>
+                        </ul>
+                        <p>Data sensitif seperti nomor HP dan email tidak bisa diexport oleh Fundraiser.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Bagaimana jika ada donatur yang minta data dihapus?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sesuai <strong>kebijakan privasi</strong> dan regulasi:</p>
+                        <ul>
+                            <li>Donatur berhak request penghapusan data pribadi</li>
+                            <li>Hubungi <strong>Super Admin</strong> untuk proses penghapusan</li>
+                            <li>Admin akan:
+                                <ul>
+                                    <li>Verifikasi identitas donatur</li>
+                                    <li>Backup data untuk arsip legal (jika diperlukan)</li>
+                                    <li>Hapus atau anonimkan data di sistem</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p><strong>Catatan:</strong> Data transaksi donasi tetap tersimpan untuk audit, tetapi identitas pribadi dianonimkan.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Apakah sistem ini compliance dengan regulasi?</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sistem dirancang sesuai dengan:</p>
+                        <ul>
+                            <li><strong>UU Zakat</strong> - Pengelolaan dan pelaporan zakat sesuai BAZNAS</li>
+                            <li><strong>Standar Akuntansi</strong> - PSAK 109 untuk akuntansi zakat dan infaq/sedekah</li>
+                            <li><strong>Privacy & Data Protection</strong> - Perlindungan data pribadi donatur</li>
+                            <li><strong>Financial Reporting</strong> - Transparansi laporan keuangan</li>
+                        </ul>
+                        <p>Sistem menghasilkan laporan yang bisa diaudit eksternal.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WhatsApp Help Box -->
+        <div class="whatsapp-help">
+            <h2>💬 Masih Ada Pertanyaan?</h2>
+            <p>Jangan ragu untuk menghubungi kami langsung via WhatsApp!<br>
+            Tim support kami siap membantu Anda 24/7.</p>
+            <a href="https://wa.me/6285366445937?text=Halo,%20saya%20butuh%20bantuan%20tentang%20Sistem%20Madani" 
+               target="_blank" 
+               class="whatsapp-btn">
+                <svg class="whatsapp-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Hubungi via WhatsApp
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Sistem Madani • Lembaga Amil Zakat</p>
+            <p>Powered by Laravel Filament v3</p>
+        </div>
+    </div>
+
+    <!-- Floating WhatsApp Button -->
+    <div class="floating-whatsapp">
+        <a href="https://wa.me/6285366445937?text=Halo,%20saya%20butuh%20bantuan%20tentang%20Sistem%20Madani" 
+           target="_blank" 
+           title="Hubungi kami via WhatsApp">
+            <svg viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+        </a>
+    </div>
+
+    <script>
+        // FAQ Accordion functionality
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const isActive = question.classList.contains('active');
+                
+                // Close all other FAQs
+                document.querySelectorAll('.faq-question').forEach(q => {
+                    q.classList.remove('active');
+                    q.nextElementSibling.classList.remove('active');
+                });
+                
+                // Toggle current FAQ
+                if (!isActive) {
+                    question.classList.add('active');
+                    answer.classList.add('active');
+                }
+            });
+        });
+
+        // Optional: Open first FAQ by default
+        document.querySelector('.faq-question')?.click();
+    </script>
+
+</body>
+</html>

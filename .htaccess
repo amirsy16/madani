@@ -1,0 +1,43 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # == SEMUA request dipaksa masuk ke public/ ==
+    # Docroot yang benar adalah public/. Selama docroot masih root project,
+    # jangan pernah melayani file apa pun di luar public/ langsung.
+
+    # Blokir file sensitif secara eksplisit (belt & suspenders)
+    RewriteRule ^(\.env\.?.*|error_log|composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|_forensik(/.*)?)$ - [F,L,NC]
+
+    # Aplikasi Node Passenger (cPanel) jangan disentuh
+    RewriteCond %{REQUEST_URI} ^/nodeapp
+    RewriteRule ^ - [L]
+
+    # Beta homepage -> public/beta.html
+    RewriteCond %{HTTP_HOST} ^(www\.)?beta\.simadi\.org$ [NC]
+    RewriteCond %{REQUEST_URI} ^/?$
+    RewriteRule ^ /public/beta.html [L]
+
+    # Homepage simadi.org -> /admin (HTTPS)
+    RewriteCond %{HTTP_HOST} ^(www\.)?simadi\.org$ [NC]
+    RewriteCond %{REQUEST_URI} ^/?$
+    RewriteRule ^ https://simadi.org/admin [R=301,L]
+
+    # Semua request lain -> public/ (dilayani oleh public/index.php)
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/simadior/nodejsapp"
+PassengerBaseURI "/nodeapp"
+PassengerNodejs "/home/simadior/nodevenv/nodejsapp/20/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the "ea-php82" package as the default "PHP" programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php82___lsphp .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
