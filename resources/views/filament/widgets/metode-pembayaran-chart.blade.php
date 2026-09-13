@@ -82,67 +82,31 @@
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {{-- Total Donasi --}}
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Donasi</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                            Rp {{ number_format($totalKeseluruhan, 0, ',', '.') }}
-                        </p>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Donasi Terverifikasi</p>
-                    </div>
-                    <div class="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-3">
-                        <x-heroicon-o-currency-dollar class="w-6 h-6 text-blue-500 dark:text-blue-400" />
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-            
+            <x-metric-card
+                label="Total Donasi"
+                value="Rp {{ number_format($totalKeseluruhan, 0, ',', '.') }}"
+                description="Donasi terverifikasi"
+                color="primary"
+                icon="heroicon-o-banknotes"
+            />
+
             {{-- Total Transaksi --}}
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transaksi</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                            {{ number_format($totalTransaksi) }} <span class="text-base font-normal text-gray-400">transaksi</span>
-                        </p>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Periode Terpilih</p>
-                    </div>
-                    <div class="bg-emerald-50 dark:bg-emerald-900/30 rounded-xl p-3">
-                        <x-heroicon-o-document-text class="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-            
+            <x-metric-card
+                label="Total Transaksi"
+                value="{{ number_format($totalTransaksi, 0, ',', '.') }}"
+                description="Transaksi pada periode terpilih"
+                color="success"
+                icon="heroicon-o-document-text"
+            />
+
             {{-- Metode Aktif --}}
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Metode Aktif</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                            {{ $totalMetode }} <span class="text-base font-normal text-gray-400">metode</span>
-                        </p>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Pembayaran Tersedia</p>
-                    </div>
-                    <div class="bg-violet-50 dark:bg-violet-900/30 rounded-xl p-3">
-                        <x-heroicon-o-credit-card class="w-6 h-6 text-violet-500 dark:text-violet-400" />
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-violet-500 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
+            <x-metric-card
+                label="Metode Aktif"
+                value="{{ $totalMetode }}"
+                description="Metode pembayaran tersedia"
+                color="info"
+                icon="heroicon-o-credit-card"
+            />
         </div>
 
         {{-- Tabel Ringkasan Metode Pembayaran --}}
@@ -167,7 +131,6 @@
                                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">Transaksi</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider" style="min-width: 200px;">Kontribusi</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Top Donatur</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -187,9 +150,10 @@
                                         default => 'bg-gray-400',
                                     };
                                 @endphp
-                                <tr 
+                                <tr
                                     wire:click="selectMetode('{{ $metode['nama'] }}')"
-                                    class="cursor-pointer transition-colors"
+                                    wire:key="metode-{{ $metode['nama'] }}"
+                                    class="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/50"
                                 >
                                     {{-- Rank --}}
                                     <td class="px-4 py-4">
@@ -245,12 +209,6 @@
                                         </div>
                                     </td>
                                     
-                                    {{-- Action --}}
-                                    <td class="px-4 py-4 text-center">
-                                        <button class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 text-primary-600 dark:text-primary-400 transition-colors">
-                                            <x-heroicon-o-eye class="w-4 h-4" />
-                                        </button>
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -331,7 +289,7 @@
                                         </thead>
                                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                             @foreach($detailData as $index => $item)
-                                                <tr>
+                                                <tr wire:key="detail-{{ $index }}-{{ $item['donatur'] }}">
                                                     <td class="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">{{ $index + 1 }}</td>
                                                     <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{{ $item['donatur'] }}</td>
                                                     <td class="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400">{{ $item['tanggal'] }}</td>
@@ -405,7 +363,7 @@
                                 @if(count($metodePembayaranStats) > 0)
                                     <div class="flex flex-wrap gap-2">
                                         @foreach($metodePembayaranStats as $metode)
-                                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800 text-sm">
+                                            <span wire:key="info-metode-{{ $metode['nama'] }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800 text-sm">
                                                 <x-heroicon-s-check-circle class="w-4 h-4 text-primary-600" />
                                                 <span class="font-medium text-gray-900 dark:text-white">{{ $metode['nama'] }}</span>
                                                 <span class="text-xs text-gray-500 bg-white dark:bg-gray-900 px-1.5 py-0.5 rounded">{{ number_format($metode['jumlah_transaksi']) }}</span>
@@ -444,11 +402,10 @@
                                 
                                 <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
                                     <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">Kelola metode pembayaran yang tersedia.</p>
-                                    <a 
+                                    <a
                                         href="{{ route('filament.admin.resources.metode-pembayarans.index') }}"
                                         target="_blank"
-                                        style="display: inline-flex !important; background-color: #ea580c !important; color: white !important; position: relative !important; z-index: 10 !important;"
-                                        class="items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors shadow-lg"
+                                        class="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                                     >
                                         <x-heroicon-o-cog-6-tooth class="w-4 h-4" />
                                         Kelola Metode

@@ -112,7 +112,7 @@
             </thead>
             <tbody class="divide-y divide-gray-200 whitespace-nowrap dark:divide-white/5">
                 @forelse($this->detailDonasiData as $index => $donasi)
-                    <tr class="fi-ta-row [@media(hover:hover)]:transition [@media(hover:hover)]:duration-75 hover:bg-gray-50 dark:hover:bg-white/5">
+                    <tr wire:key="detail-donasi-{{ $donasi['id'] ?? $index }}" class="fi-ta-row [@media(hover:hover)]:transition [@media(hover:hover)]:duration-75 hover:bg-gray-50 dark:hover:bg-white/5">
                         <td class="fi-ta-cell p-0 first-of-type:ps-1 last-of-type:pe-1 sm:first-of-type:ps-2 sm:last-of-type:pe-2">
                             <div class="fi-ta-col-wrp">
                                 <div class="fi-ta-text grid w-full gap-y-1 px-2 py-2">

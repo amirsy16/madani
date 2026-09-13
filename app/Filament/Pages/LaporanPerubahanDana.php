@@ -105,7 +105,11 @@ class LaporanPerubahanDana extends Page implements HasForms
 
         $danaService = new DanaService();
         $this->reportData = $danaService->getLaporanPerubahanDana($this->startDate, $this->endDate);
-        
+
+        // Prefetch persentase hak amil untuk semua sumber dana dalam satu query,
+        // sehingga blade tidak memanggil SumberDanaPenyaluran::find() per baris.
+        $this->attachPersentaseHakAmil();
+
         // Ambil data summary jika ada
         if (isset($this->reportData['summary'])) {
             $this->summaryData = $this->reportData['summary'];
@@ -120,6 +124,35 @@ class LaporanPerubahanDana extends Page implements HasForms
         $this->penggunaanHakAmilDetail = $laporanHakAmil['penggunaan_detail'];
         $this->totalPenggunaanHakAmil = $laporanHakAmil['total_penggunaan'];
         $this->surplusDefisitHakAmil = $laporanHakAmil['surplus_defisit'];
+    }
+
+    /**
+     * Sisipkan persentase hak amil (sudah ada di data sumber dana) ke setiap
+     * entri laporan agar view tidak melakukan query per baris.
+     * Tidak mengubah hasil perhitungan DanaService — hanya melengkapi data tampilan.
+     */
+    protected function attachPersentaseHakAmil(): void
+    {
+        $sumberDanaIds = collect($this->reportData)
+            ->filter(fn ($data) => is_array($data) && isset($data['sumber_dana_id']))
+            ->pluck('sumber_dana_id')
+            ->unique()
+            ->values();
+
+        if ($sumberDanaIds->isEmpty()) {
+            return;
+        }
+
+        $persentaseMap = \App\Models\SumberDanaPenyaluran::whereIn('id', $sumberDanaIds)
+            ->pluck('persentase_hak_amil', 'id');
+
+        foreach ($this->reportData as $key => $data) {
+            if (is_array($data)
+                && isset($data['sumber_dana_id'])
+                && isset($persentaseMap[$data['sumber_dana_id']])) {
+                $this->reportData[$key]['persentase_hak_amil'] = (float) $persentaseMap[$data['sumber_dana_id']];
+            }
+        }
     }
 
     /**

@@ -34,7 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\Login::class)
             ->passwordReset()
             ->emailVerification()
             ->topNavigation()
@@ -58,10 +58,6 @@ class AdminPanelProvider extends PanelProvider
                 AnalisisData::class
             ])
             ->databaseNotifications()
-            ->renderHook(
-                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => Blade::render('<div class="text-center mt-4"><span class="text-xs text-gray-400 dark:text-gray-500 font-medium">Simadi v1.2 &mdash; LAZ Insan Madani</span></div>')
-            )
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn (): string => Blade::render('@include("filament.components.aduan-saran-icon")')
