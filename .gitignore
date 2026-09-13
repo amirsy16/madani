@@ -22,3 +22,6 @@ yarn-error.log
 /error_log
 /_forensik
 /storage/app/private
+
+# Seeder berisi data nyata — tidak dipush
+/database/seeders/
