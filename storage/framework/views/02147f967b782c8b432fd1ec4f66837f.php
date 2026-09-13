@@ -1,1 +1,0 @@
-<?php /**PATH /home/simadior/public_html/resources/views/filament/widgets/top-donatur-analytics.blade.php ENDPATH**/ ?>

@@ -40,18 +40,21 @@
     36 => 'Jeffgreco13\\FilamentBreezy\\FilamentBreezyServiceProvider',
     37 => 'Jenssegers\\Agent\\AgentServiceProvider',
     38 => 'Kirschbaum\\PowerJoins\\PowerJoinsServiceProvider',
-    39 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    40 => 'Leandrocfe\\FilamentApexCharts\\FilamentApexChartsServiceProvider',
-    41 => 'Livewire\\LivewireServiceProvider',
-    42 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
-    43 => 'Carbon\\Laravel\\ServiceProvider',
-    44 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    45 => 'pxlrbt\\FilamentExcel\\FilamentExcelServiceProvider',
-    46 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
-    47 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
-    48 => 'Spatie\\Permission\\PermissionServiceProvider',
-    49 => 'App\\Providers\\AppServiceProvider',
-    50 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    39 => 'Laravel\\Sail\\SailServiceProvider',
+    40 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    41 => 'Leandrocfe\\FilamentApexCharts\\FilamentApexChartsServiceProvider',
+    42 => 'Livewire\\LivewireServiceProvider',
+    43 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
+    44 => 'Carbon\\Laravel\\ServiceProvider',
+    45 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    46 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    47 => 'pxlrbt\\FilamentExcel\\FilamentExcelServiceProvider',
+    48 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
+    49 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
+    50 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
+    51 => 'Spatie\\Permission\\PermissionServiceProvider',
+    52 => 'App\\Providers\\AppServiceProvider',
+    53 => 'App\\Providers\\Filament\\AdminPanelProvider',
   ),
   'eager' => 
   array (
@@ -85,13 +88,15 @@
     27 => 'Livewire\\LivewireServiceProvider',
     28 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     29 => 'Carbon\\Laravel\\ServiceProvider',
-    30 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    31 => 'pxlrbt\\FilamentExcel\\FilamentExcelServiceProvider',
-    32 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
-    33 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
-    34 => 'Spatie\\Permission\\PermissionServiceProvider',
-    35 => 'App\\Providers\\AppServiceProvider',
-    36 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    30 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    31 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    32 => 'pxlrbt\\FilamentExcel\\FilamentExcelServiceProvider',
+    33 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
+    34 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
+    35 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
+    36 => 'Spatie\\Permission\\PermissionServiceProvider',
+    37 => 'App\\Providers\\AppServiceProvider',
+    38 => 'App\\Providers\\Filament\\AdminPanelProvider',
   ),
   'deferred' => 
   array (
@@ -244,6 +249,8 @@
     'validator' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'validation.presence' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
+    'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -285,6 +292,9 @@
     array (
     ),
     'Illuminate\\Validation\\ValidationServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Sail\\SailServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 

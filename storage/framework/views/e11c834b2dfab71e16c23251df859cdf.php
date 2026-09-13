@@ -1,1 +1,0 @@
-<?php /**PATH /home/simadior/public_html/resources/views/filament/widgets/donatur-detail-modal.blade.php ENDPATH**/ ?>

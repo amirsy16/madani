@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,9 +24,15 @@ return new class extends Migration
             $table->index(['jenis_donasi_id', 'aktif']);
             $table->index(['sumber_dana_penyaluran_id', 'aktif']);
             
-            // Constraint untuk memastikan hanya salah satu yang diisi
-            $table->check('(jenis_donasi_id IS NOT NULL AND sumber_dana_penyaluran_id IS NULL) OR (jenis_donasi_id IS NULL AND sumber_dana_penyaluran_id IS NOT NULL) OR (jenis_donasi_id IS NULL AND sumber_dana_penyaluran_id IS NULL)');
         });
+
+        // Constraint hanya-salah-satu diisi — Blueprint::check() tidak ada di Laravel,
+        // jadi dibuat via raw statement (MySQL 8+ / MariaDB)
+        DB::statement('ALTER TABLE jenis_penggunaan_hak_amils ADD CONSTRAINT chk_penggunaan_hak_amil_sumber CHECK (
+            (jenis_donasi_id IS NOT NULL AND sumber_dana_penyaluran_id IS NULL)
+            OR (jenis_donasi_id IS NULL AND sumber_dana_penyaluran_id IS NOT NULL)
+            OR (jenis_donasi_id IS NULL AND sumber_dana_penyaluran_id IS NULL)
+        )');
     }
 
     /**
