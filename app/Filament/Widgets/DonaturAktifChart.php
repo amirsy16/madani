@@ -6,25 +6,30 @@ use App\Models\Donasi;
 use App\Services\StatsCache;
 use Carbon\Carbon;
 use Filament\Support\RawJs;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class TrenDonasiChart extends ApexChartWidget
+class DonaturAktifChart extends ApexChartWidget
 {
-    protected static ?string $chartId = 'trenDonasiChart';
+    protected static ?string $chartId = 'donaturAktifChart';
 
-    protected static ?string $heading = 'Tren Donasi';
+    protected static ?string $heading = 'Donatur Aktif';
 
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 7;
 
     protected int | string | array $columnSpan = 1;
 
     protected static ?int $contentHeight = 220;
 
-    // Matikan polling bawaan (5s) agar tidak membebani dashboard
     protected static ?string $pollingInterval = null;
 
     public ?string $filter = '6_bulan';
+
+    public function getSubheading(): string | Htmlable | null
+    {
+        return 'Jumlah donatur unik yang berdonasi terverifikasi per bulan — ' . (($this->filter ?? '6_bulan') === '12_bulan' ? '12 bulan terakhir' : '6 bulan terakhir');
+    }
 
     protected function getFilters(): ?array
     {
@@ -42,16 +47,17 @@ class TrenDonasiChart extends ApexChartWidget
         $data = [];
 
         $totals = StatsCache::remember(
-            'tren_donasi_' . ($this->filter ?? '6_bulan'),
+            'donatur_aktif_' . ($this->filter ?? '6_bulan'),
             function () use ($jumlahBulan) {
                 $start = Carbon::now()->subMonths($jumlahBulan - 1)->startOfMonth();
                 $end = Carbon::now()->endOfMonth();
 
                 return Donasi::where('status_konfirmasi', 'verified')
+                    ->whereNotNull('donatur_id')
                     ->whereBetween('tanggal_donasi', [$start->toDateString(), $end->toDateString()])
                     ->select(
                         DB::raw('DATE_FORMAT(tanggal_donasi, "%Y-%m") as bulan'),
-                        DB::raw('SUM(COALESCE(jumlah, 0) + COALESCE(perkiraan_nilai_barang, 0)) as total')
+                        DB::raw('COUNT(DISTINCT donatur_id) as total')
                     )
                     ->groupBy('bulan')
                     ->pluck('total', 'bulan')
@@ -62,20 +68,20 @@ class TrenDonasiChart extends ApexChartWidget
         for ($i = $jumlahBulan - 1; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
             $labels[] = $month->translatedFormat('M Y');
-            $data[] = (float) ($totals[$month->format('Y-m')] ?? 0);
+            $data[] = (int) ($totals[$month->format('Y-m')] ?? 0);
         }
 
         return [
             'chart' => [
-                'type' => 'area',
+                'type' => 'bar',
                 'height' => 220,
+                'fontFamily' => 'inherit',
                 'toolbar' => ['show' => false],
                 'zoom' => ['enabled' => false],
-                'fontFamily' => 'inherit',
             ],
             'series' => [
                 [
-                    'name' => 'Total Donasi Diterima',
+                    'name' => 'Donatur Aktif',
                     'data' => $data,
                 ],
             ],
@@ -83,20 +89,14 @@ class TrenDonasiChart extends ApexChartWidget
                 'categories' => $labels,
                 'labels' => ['style' => ['fontWeight' => 600]],
             ],
-            'dataLabels' => ['enabled' => false],
-            'stroke' => [
-                'curve' => 'smooth',
-                'width' => 3,
-            ],
             'colors' => ['#800020'],
-            'fill' => [
-                'type' => 'gradient',
-                'gradient' => [
-                    'shadeIntensity' => 1,
-                    'opacityFrom' => 0.35,
-                    'opacityTo' => 0.05,
+            'plotOptions' => [
+                'bar' => [
+                    'borderRadius' => 4,
+                    'columnWidth' => '55%',
                 ],
             ],
+            'dataLabels' => ['enabled' => false],
         ];
     }
 
@@ -106,12 +106,7 @@ class TrenDonasiChart extends ApexChartWidget
         {
             yaxis: {
                 labels: {
-                    formatter: (val) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(val),
-                },
-            },
-            tooltip: {
-                y: {
-                    formatter: (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val),
+                    formatter: (val) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(val),
                 },
             },
         }

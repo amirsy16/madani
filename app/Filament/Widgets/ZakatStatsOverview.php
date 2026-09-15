@@ -15,10 +15,10 @@ class ZakatStatsOverview extends BaseWidget
     protected static ?int $sort = 1;
     protected int | string | array $columnSpan = 'full';
     
-    // Menggunakan 4 kolom untuk menampilkan 4 statistik (1 baris x 4 kolom)
+    // Menggunakan 5 kolom untuk menampilkan 5 statistik (1 baris x 5 kolom)
     protected function getColumns(): int
     {
-        return 4;
+        return 5;
     }
 
     protected function getStats(): array
@@ -57,10 +57,19 @@ class ZakatStatsOverview extends BaseWidget
             ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->count();
 
+        // --- 5. Hak Amil Bulan Ini ---
+        // Formula sama dengan Donasi::getHakAmilAttribute: total_nilai * persentase sumber dana / 100
+        $hakAmilBulanIni = (float) Donasi::where('status_konfirmasi', 'verified')
+            ->whereMonth('tanggal_donasi', $currentMonth)
+            ->whereYear('tanggal_donasi', $currentYear)
+            ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
+            ->leftJoin('sumber_dana_penyalurans', 'jenis_donasis.sumber_dana_penyaluran_id', '=', 'sumber_dana_penyalurans.id')
+            ->sum(DB::raw('(COALESCE(donasis.jumlah, 0) + COALESCE(donasis.perkiraan_nilai_barang, 0)) * COALESCE(sumber_dana_penyalurans.persentase_hak_amil, 0) / 100'));
+
         return [
             // 1. Total Donasi Keseluruhan
             Stat::make('Total Donasi', 'Rp ' . number_format($totalDonasiKeseluruhan, 0, ',', '.'))
-                ->description('Semua donasi terverifikasi')
+                ->description('Terverifikasi')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
 
@@ -72,15 +81,21 @@ class ZakatStatsOverview extends BaseWidget
 
             // 3. Total Donatur
             Stat::make('Donatur', number_format($totalDonatur, 0, ',', '.'))
-                ->description('Total donatur terdaftar')
+                ->description('Terdaftar')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('warning'),
 
             // 4. Total Transaksi
             Stat::make('Transaksi', number_format($totalTransaksi, 0, ',', '.'))
-                ->description('Total transaksi terverifikasi')
+                ->description('Terverifikasi')
                 ->descriptionIcon('heroicon-m-document-check')
                 ->color('danger'),
+
+            // 5. Hak Amil Bulan Ini
+            Stat::make('Hak Amil', 'Rp ' . number_format($hakAmilBulanIni, 0, ',', '.'))
+                ->description(Carbon::now()->translatedFormat('F Y'))
+                ->descriptionIcon('heroicon-m-calculator')
+                ->color('primary'),
         ];
     }
 

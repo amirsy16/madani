@@ -11,6 +11,10 @@ use App\Services\StatsCache;
 
 class HakAmilOverviewWidget extends BaseWidget
 {
+    // Ringkasan hak amil sudah ditampilkan sebagai kotak ke-5 di ZakatStatsOverview,
+    // widget ini tidak lagi tampil otomatis di dashboard.
+    protected static bool $isDiscovered = false;
+
     protected function getStats(): array
     {
         return StatsCache::remember('hak_amil_overview', function () {

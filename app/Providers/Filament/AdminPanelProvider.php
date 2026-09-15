@@ -71,7 +71,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 \App\Filament\Widgets\ZakatStatsOverview::class,
-                \App\Filament\Widgets\TopDonaturRingkasWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -85,6 +84,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->plugins([
+                FilamentApexChartsPlugin::make(),
                 FilamentShieldPlugin::make()
                     ->gridColumns([
                         'default' => 1,

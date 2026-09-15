@@ -1,1 +1,28 @@
 @import "../../../../vendor/filament/filament/resources/css/index.css";
+
+/* Kotak statistik dashboard: ringkas agar muat 1 baris x 5 kolom */
+.fi-wi-stats-overview-stat {
+    padding: 0.875rem 1rem;
+}
+
+.fi-wi-stats-overview-stat-label {
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
+
+.fi-wi-stats-overview-stat-value {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.fi-wi-stats-overview-stat-description {
+    font-size: 0.7rem;
+    line-height: 1.25;
+}
+
+.fi-wi-stats-overview-stat-icon,
+.fi-wi-stats-overview-stat-description-icon {
+    height: 1rem;
+    width: 1rem;
+}
