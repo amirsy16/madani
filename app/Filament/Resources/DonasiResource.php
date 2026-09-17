@@ -197,10 +197,15 @@ class DonasiResource extends Resource
                         ->required()
                         ->label('Jenis Donasi')
                         ->live()
-                        ->afterStateUpdated(function (callable $set) {
+                        ->afterStateUpdated(function (callable $set, $state) {
                             $set('keterangan_infak_khusus', null);
                             $set('deskripsi_barang', null);
                             $set('perkiraan_nilai_barang', null);
+                            // Cegah jumlah uang lama terbawa saat ganti ke jenis barang
+                            // (field jumlah hidden tapi tetap ter-dehydrate).
+                            if ($state && \App\Models\JenisDonasi::find($state)?->apakah_barang) {
+                                $set('jumlah', 0);
+                            }
                         }),
                     
                     DatePicker::make('tanggal_donasi')

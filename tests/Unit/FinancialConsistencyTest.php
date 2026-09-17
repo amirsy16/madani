@@ -102,6 +102,45 @@ class FinancialConsistencyTest extends TestCase
         $this->assertEqualsWithDelta(1_000_000, $totalAmil, 0.01);
     }
 
+    public function test_model_normalisasi_uang_vs_barang(): void
+    {
+        $sumber = $this->seedSumber('Dana Uji Normalisasi');
+
+        // Donasi barang yang (salah) isi dua kolom → jumlah dipaksa 0.
+        $jenisBarang = JenisDonasi::create([
+            'nama' => 'Logistik Uji Norm',
+            'aktif' => true,
+            'apakah_barang' => true,
+            'sumber_dana_penyaluran_id' => $sumber->id,
+        ]);
+        $d1 = Donasi::create([
+            'jenis_donasi_id' => $jenisBarang->id,
+            'jumlah' => 500_000,
+            'perkiraan_nilai_barang' => 700_000,
+            'status_konfirmasi' => 'verified',
+            'tanggal_donasi' => now()->toDateString(),
+            'nomor_transaksi_unik' => 'TRX-'.uniqid(),
+        ]);
+        $this->assertEquals(0, (float) $d1->refresh()->jumlah);
+
+        // Donasi uang yang (salah) isi nilai barang → barang di-null-kan.
+        $jenisUang = JenisDonasi::create([
+            'nama' => 'Zakat Uji Norm',
+            'aktif' => true,
+            'apakah_barang' => false,
+            'sumber_dana_penyaluran_id' => $sumber->id,
+        ]);
+        $d2 = Donasi::create([
+            'jenis_donasi_id' => $jenisUang->id,
+            'jumlah' => 300_000,
+            'perkiraan_nilai_barang' => 200_000,
+            'status_konfirmasi' => 'verified',
+            'tanggal_donasi' => now()->toDateString(),
+            'nomor_transaksi_unik' => 'TRX-'.uniqid(),
+        ]);
+        $this->assertNull($d2->refresh()->perkiraan_nilai_barang);
+    }
+
     public function test_nilai_barang_tidak_double_count(): void
     {
         $sumber = $this->seedSumber('Dana Uji Barang');
