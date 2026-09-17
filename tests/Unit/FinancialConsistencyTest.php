@@ -141,6 +141,37 @@ class FinancialConsistencyTest extends TestCase
         $this->assertNull($d2->refresh()->perkiraan_nilai_barang);
     }
 
+    public function test_detail_amil_memakai_tabel_yang_benar(): void
+    {
+        $jenisAmil = \App\Models\JenisPenggunaanHakAmil::create([
+            'nama' => 'Operasional Uji',
+        ]);
+        $user = \App\Models\User::create([
+            'name' => 'Amil Tester',
+            'email' => uniqid().'@test.local',
+            'password' => 'password',
+        ]);
+        \App\Models\PenggunaanHakAmil::create([
+            'tanggal' => now()->toDateString(),
+            'jenis_penggunaan_hak_amil_id' => $jenisAmil->id,
+            'keterangan' => 'Uji',
+            'jumlah' => 250_000,
+            'user_id' => $user->id,
+        ]);
+
+        $svc = new \App\Services\DanaService;
+        $start = now()->startOfMonth()->toDateString();
+        $end = now()->endOfMonth()->toDateString();
+
+        $byJenis = $svc->getDetailPenggunaanHakAmilByJenis($start, $end);
+        $this->assertNotEmpty($byJenis, 'getDetailPenggunaanHakAmilByJenis harus menemukan data.');
+        $this->assertEqualsWithDelta(250_000, (float) $byJenis[0]['total_jumlah'], 0.01);
+
+        $detail = $svc->getDetailJenisPenggunaanAmil($start, $end);
+        $this->assertNotEmpty($detail, 'getDetailJenisPenggunaanAmil harus baca penggunaan_hak_amils.');
+        $this->assertEqualsWithDelta(250_000, (float) $detail[0]['jumlah'], 0.01);
+    }
+
     public function test_nilai_barang_tidak_double_count(): void
     {
         $sumber = $this->seedSumber('Dana Uji Barang');

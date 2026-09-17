@@ -502,22 +502,22 @@ class DanaService
     }
 
     /**
-     * Mendapatkan detail jenis penggunaan hak amil
+     * Mendapatkan detail jenis penggunaan hak amil.
+     * Sumber: tabel penggunaan_hak_amils (sama seperti laporan hak amil),
+     * bukan program_penyalurans.
      */
     public function getDetailJenisPenggunaanAmil(string $startDate, string $endDate): array
     {
-        // Ambil semua pengeluaran yang dikategorikan sebagai hak amil
-        $penggunaanAmil = DB::table('program_penyalurans as pp')
-            ->join('sumber_dana_penyalurans as sdp', 'pp.sumber_dana_penyaluran_id', '=', 'sdp.id')
-            ->where('sdp.nama_sumber_dana', 'LIKE', '%hak amil%')
-            ->whereBetween('pp.tanggal_penyaluran', [$startDate, $endDate])
+        $penggunaanAmil = DB::table('penggunaan_hak_amils as pha')
+            ->leftJoin('jenis_penggunaan_hak_amils as jpha', 'pha.jenis_penggunaan_hak_amil_id', '=', 'jpha.id')
+            ->whereBetween('pha.tanggal', [$startDate, $endDate])
             ->select(
-                'pp.nama_program as keperluan',
-                'pp.jumlah_dana as jumlah',
-                'pp.tanggal_penyaluran as tanggal',
-                'pp.keterangan'
+                DB::raw('COALESCE(jpha.nama, pha.keterangan, "-") as keperluan'),
+                'pha.jumlah as jumlah',
+                'pha.tanggal as tanggal',
+                'pha.keterangan'
             )
-            ->orderBy('pp.tanggal_penyaluran', 'desc')
+            ->orderBy('pha.tanggal', 'desc')
             ->get();
 
         return $penggunaanAmil->map(function ($item) {
@@ -648,7 +648,7 @@ class DanaService
                 DB::raw('SUM(pha.jumlah) as total_jumlah'),
                 DB::raw('COUNT(pha.id) as jumlah_transaksi')
             )
-            ->whereBetween('pha.tanggal_penggunaan', [$startDate, $endDate])
+            ->whereBetween('pha.tanggal', [$startDate, $endDate])
             ->groupBy('jpha.id', 'jpha.nama')
             ->orderBy('jpha.nama')
             ->get()
