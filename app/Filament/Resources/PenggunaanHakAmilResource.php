@@ -45,7 +45,18 @@ class PenggunaanHakAmilResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('jumlah')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->helperText(fn ($record = null) => 'Sisa hak amil: Rp '.number_format(app(\App\Services\DanaService::class)->getSisaHakAmil($record?->id), 0, ',', '.'))
+                    ->rule(function ($record = null) {
+                        $danaService = app(\App\Services\DanaService::class);
+                        return function (string $attribute, $value, \Closure $fail) use ($danaService, $record) {
+                            try {
+                                $danaService->assertCukupHakAmil(floatval($value), $record?->id);
+                            } catch (\Illuminate\Validation\ValidationException $e) {
+                                $fail(collect($e->errors())->flatten()->first());
+                            }
+                        };
+                    }),
                 Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
                     ->required(),

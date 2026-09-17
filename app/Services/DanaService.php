@@ -11,6 +11,7 @@ use App\Models\BidangProgram;
 use App\Models\JenisPenggunaanHakAmil;
 use Illuminate\Support\Facades\DB;
 use App\Services\StatsCache;
+use Illuminate\Validation\ValidationException;
 
 class DanaService
 {
@@ -32,6 +33,59 @@ class DanaService
     public function getSaldoTersedia(int $sumberDanaId): float
     {
         return max(0, $this->computeSaldoTersedia($sumberDanaId));
+    }
+
+    /**
+     * Guard tunggal untuk create & edit penyaluran.
+     * $jumlahLama diisi dengan nilai record saat edit pada sumber yang sama
+     * (dana record tersebut "kembali" ke saldo sebelum dicek).
+     *
+     * @throws ValidationException
+     */
+    public function assertCukupSaldo(int $sumberDanaId, float $jumlah, ?float $jumlahLama = null): void
+    {
+        $saldo = $this->getSaldoTersediaRaw($sumberDanaId);
+        if ($jumlahLama !== null) {
+            $saldo += $jumlahLama;
+        }
+        if ($jumlah > $saldo) {
+            throw ValidationException::withMessages([
+                'jumlah_dana' => 'Jumlah penyaluran melebihi saldo tersedia: Rp '.number_format($saldo, 0, ',', '.'),
+            ]);
+        }
+    }
+
+    /**
+     * Sisa hak amil all-time: total teoritis (% x penerimaan verified,
+     * exclude Penyaluran Langsung) dikurangi total penggunaan tercatat.
+     */
+    public function getSisaHakAmil(?int $kecualikanPenggunaanId = null): float
+    {
+        $totalTeoritis = (float) Donasi::where('donasis.status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
+            ->leftJoin('sumber_dana_penyalurans', 'jenis_donasis.sumber_dana_penyaluran_id', '=', 'sumber_dana_penyalurans.id')
+            ->sum(DB::raw('(COALESCE(donasis.jumlah, 0) + COALESCE(donasis.perkiraan_nilai_barang, 0)) * COALESCE(sumber_dana_penyalurans.persentase_hak_amil, 0) / 100'));
+
+        $terpakai = (float) \App\Models\PenggunaanHakAmil::when(
+            $kecualikanPenggunaanId,
+            fn ($q) => $q->where('id', '!=', $kecualikanPenggunaanId)
+        )->sum('jumlah');
+
+        return $totalTeoritis - $terpakai;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function assertCukupHakAmil(float $jumlah, ?int $kecualikanPenggunaanId = null): void
+    {
+        $sisa = $this->getSisaHakAmil($kecualikanPenggunaanId);
+        if ($jumlah > $sisa) {
+            throw ValidationException::withMessages([
+                'jumlah' => 'Jumlah penggunaan melebihi sisa hak amil: Rp '.number_format($sisa, 0, ',', '.'),
+            ]);
+        }
     }
 
     protected function computeSaldoTersedia(int $sumberDanaId): float

@@ -38,13 +38,7 @@ class CreateProgramPenyaluran extends CreateRecord
                 ->lockForUpdate()
                 ->get();
 
-            $saldo = app(DanaService::class)->getSaldoTersediaRaw($sumberDanaId);
-
-            if ($jumlah > $saldo) {
-                throw ValidationException::withMessages([
-                    'jumlah_dana' => 'Jumlah penyaluran melebihi saldo tersedia: Rp ' . number_format($saldo, 0, ',', '.'),
-                ]);
-            }
+            app(DanaService::class)->assertCukupSaldo($sumberDanaId, $jumlah);
         });
     }
 }
