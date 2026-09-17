@@ -60,6 +60,7 @@ class ZakatStatsOverview extends BaseWidget
         // --- 5. Hak Amil Bulan Ini ---
         // Formula sama dengan Donasi::getHakAmilAttribute: total_nilai * persentase sumber dana / 100
         $hakAmilBulanIni = (float) Donasi::where('status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->whereMonth('tanggal_donasi', $currentMonth)
             ->whereYear('tanggal_donasi', $currentYear)
             ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')

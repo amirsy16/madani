@@ -24,7 +24,9 @@ class DonasiOverviewStats extends BaseWidget
 
     protected function computeStats(): array
     {
-        $query = Donasi::query();
+        // Exclude "Penyaluran Langsung" agar konsisten dengan
+        // ZakatStatsOverview & RingkasanStatistikUtama (dana tak masuk kas).
+        $query = Donasi::whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'));
             
         // Current date, month and year
         $currentDate = Carbon::now();
