@@ -17,7 +17,8 @@ class DonasiOverviewStats extends BaseWidget
 
     protected function getStats(): array
     {
-        return StatsCache::remember('donasi_overview_stats', function () {
+        // Key memuat tanggal berjalan (ada stat "Hari Ini").
+        return StatsCache::remember('donasi_overview_stats:'.today()->toDateString(), function () {
             return $this->computeStats();
         });
     }

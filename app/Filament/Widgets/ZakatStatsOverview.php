@@ -23,7 +23,9 @@ class ZakatStatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        return StatsCache::remember('zakat_overview', function () {
+        // Key memuat bulan berjalan agar pergantian bulan langsung hitung ulang
+        // (tanpa menunggu TTL / data berubah).
+        return StatsCache::remember('zakat_overview:'.now()->format('Y-m'), function () {
             return $this->computeStats();
         });
     }

@@ -17,7 +17,7 @@ class HakAmilOverviewWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        return StatsCache::remember('hak_amil_overview', function () {
+        return StatsCache::remember('hak_amil_overview:'.now()->format('Y-m'), function () {
             return $this->computeStats();
         });
     }

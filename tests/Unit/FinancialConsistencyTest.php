@@ -172,6 +172,35 @@ class FinancialConsistencyTest extends TestCase
         $this->assertEqualsWithDelta(250_000, (float) $detail[0]['jumlah'], 0.01);
     }
 
+    public function test_cache_bulan_berganti_hitung_ulang(): void
+    {
+        \Illuminate\Support\Facades\Cache::flush();
+        // 7 menit sebelum pergantian bulan: masih dalam TTL 10 menit cache.
+        \Carbon\Carbon::setTestNow('2026-01-31 23:55:00');
+        try {
+            $sumber = $this->seedSumber('Dana Uji Cache');
+            $this->seedDonasi($sumber, 'Zakat Uji Cache', 1_000_000);
+
+            $getStats = function (object $w) {
+                $m = new \ReflectionMethod($w, 'getStats');
+                $m->setAccessible(true);
+
+                return $m->invoke($w);
+            };
+
+            $jan = $getStats(new \App\Filament\Widgets\ZakatStatsOverview);
+            $this->assertEqualsWithDelta(1_000_000, $this->rpToFloat($this->statValue($jan, 'Bulan Ini')), 0.01);
+
+            // Lewat tengah malam (masih dalam TTL): angka bulan ini harus 0, bukan sisa cache Januari.
+            \Carbon\Carbon::setTestNow('2026-02-01 00:02:00');
+            $feb = $getStats(new \App\Filament\Widgets\ZakatStatsOverview);
+            $this->assertEqualsWithDelta(0, $this->rpToFloat($this->statValue($feb, 'Bulan Ini')), 0.01);
+        } finally {
+            \Carbon\Carbon::setTestNow();
+            \Illuminate\Support\Facades\Cache::flush();
+        }
+    }
+
     public function test_nilai_barang_tidak_double_count(): void
     {
         $sumber = $this->seedSumber('Dana Uji Barang');
