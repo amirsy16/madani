@@ -17,14 +17,17 @@ class DonasiOverviewStats extends BaseWidget
 
     protected function getStats(): array
     {
-        return StatsCache::remember('donasi_overview_stats', function () {
+        // Key memuat tanggal berjalan (ada stat "Hari Ini").
+        return StatsCache::remember('donasi_overview_stats:'.today()->toDateString(), function () {
             return $this->computeStats();
         });
     }
 
     protected function computeStats(): array
     {
-        $query = Donasi::query();
+        // Exclude "Penyaluran Langsung" agar konsisten dengan
+        // ZakatStatsOverview & RingkasanStatistikUtama (dana tak masuk kas).
+        $query = Donasi::whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'));
             
         // Current date, month and year
         $currentDate = Carbon::now();

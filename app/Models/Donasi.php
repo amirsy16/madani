@@ -30,6 +30,26 @@ class Donasi extends Model {
     public function dicatatOleh(): BelongsTo { return $this->belongsTo(User::class, 'dicatat_oleh_user_id'); }
 
     /**
+     * Normalisasi uang vs barang: satu transaksi hanya boleh punya SATU nilai.
+     * Mencegah double-count pada agregat `jumlah + perkiraan_nilai_barang`.
+     * Berlaku untuk semua jalur (form, import, seeder) karena di level model.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Donasi $donasi) {
+            $jenis = $donasi->jenisDonasi ?? ($donasi->jenis_donasi_id ? JenisDonasi::find($donasi->jenis_donasi_id) : null);
+            if (! $jenis) {
+                return;
+            }
+            if ($jenis->apakah_barang) {
+                $donasi->jumlah = 0;
+            } else {
+                $donasi->perkiraan_nilai_barang = null;
+            }
+        });
+    }
+
+    /**
      * Get total nilai donasi (cash + barang)
      */
     public function getTotalNilaiAttribute(): float

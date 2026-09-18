@@ -17,7 +17,7 @@ class HakAmilOverviewWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        return StatsCache::remember('hak_amil_overview', function () {
+        return StatsCache::remember('hak_amil_overview:'.now()->format('Y-m'), function () {
             return $this->computeStats();
         });
     }
@@ -28,6 +28,7 @@ class HakAmilOverviewWidget extends BaseWidget
         $totalDonasiBulanIni = Donasi::whereMonth('tanggal_donasi', now()->month)
             ->whereYear('tanggal_donasi', now()->year)
             ->where('status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->sum(DB::raw('COALESCE(jumlah, 0) + COALESCE(perkiraan_nilai_barang, 0)'));
 
         // Hitung total hak amil bulan ini — satu query aggregate
@@ -35,6 +36,7 @@ class HakAmilOverviewWidget extends BaseWidget
         $totalHakAmilBulanIni = (float) Donasi::whereMonth('tanggal_donasi', now()->month)
             ->whereYear('tanggal_donasi', now()->year)
             ->where('status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
             ->leftJoin('sumber_dana_penyalurans', 'jenis_donasis.sumber_dana_penyaluran_id', '=', 'sumber_dana_penyalurans.id')
             ->sum(DB::raw('(COALESCE(donasis.jumlah, 0) + COALESCE(donasis.perkiraan_nilai_barang, 0)) * COALESCE(sumber_dana_penyalurans.persentase_hak_amil, 0) / 100'));
@@ -43,6 +45,7 @@ class HakAmilOverviewWidget extends BaseWidget
         $totalTransaksiBulanIni = Donasi::whereMonth('tanggal_donasi', now()->month)
             ->whereYear('tanggal_donasi', now()->year)
             ->where('status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->count();
 
         // Hitung persentase hak amil dari total donasi

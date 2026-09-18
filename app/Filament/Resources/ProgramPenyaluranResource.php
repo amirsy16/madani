@@ -106,15 +106,21 @@ class ProgramPenyaluranResource extends Resource
                                 ->numeric()
                                 ->prefix('Rp')
                                 ->live(onBlur: true)
-                                ->rule(function (Get $get, DanaService $danaService) {
-                                    return function (string $attribute, $value, \Closure $fail) use ($get, $danaService) {
+                                ->rule(function (Get $get, DanaService $danaService, $record = null) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($get, $danaService, $record) {
                                         $sumberDanaId = $get('sumber_dana_penyaluran_id');
                                         if (!$sumberDanaId) {
                                             return;
                                         }
-                                        $saldoTersedia = $danaService->getSaldoTersedia($sumberDanaId);
-                                        if (floatval($value) > $saldoTersedia) {
-                                            $fail("Jumlah penyaluran tidak boleh melebihi saldo tersedia: Rp " . number_format($saldoTersedia, 0, ',', '.'));
+                                        // Pakai saldo RAW (boleh negatif) + kembalikan nilai lama saat edit
+                                        // agar pesan & penolakan akurat, bukan versi clamp-0.
+                                        $jumlahLama = ($record && (int) $record->sumber_dana_penyaluran_id === (int) $sumberDanaId)
+                                            ? (float) $record->jumlah_dana
+                                            : null;
+                                        try {
+                                            $danaService->assertCukupSaldo($sumberDanaId, floatval($value), $jumlahLama);
+                                        } catch (\Illuminate\Validation\ValidationException $e) {
+                                            $fail(collect($e->errors())->flatten()->first());
                                         }
                                     };
                                 }),

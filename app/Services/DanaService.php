@@ -11,6 +11,7 @@ use App\Models\BidangProgram;
 use App\Models\JenisPenggunaanHakAmil;
 use Illuminate\Support\Facades\DB;
 use App\Services\StatsCache;
+use Illuminate\Validation\ValidationException;
 
 class DanaService
 {
@@ -32,6 +33,59 @@ class DanaService
     public function getSaldoTersedia(int $sumberDanaId): float
     {
         return max(0, $this->computeSaldoTersedia($sumberDanaId));
+    }
+
+    /**
+     * Guard tunggal untuk create & edit penyaluran.
+     * $jumlahLama diisi dengan nilai record saat edit pada sumber yang sama
+     * (dana record tersebut "kembali" ke saldo sebelum dicek).
+     *
+     * @throws ValidationException
+     */
+    public function assertCukupSaldo(int $sumberDanaId, float $jumlah, ?float $jumlahLama = null): void
+    {
+        $saldo = $this->getSaldoTersediaRaw($sumberDanaId);
+        if ($jumlahLama !== null) {
+            $saldo += $jumlahLama;
+        }
+        if ($jumlah > $saldo) {
+            throw ValidationException::withMessages([
+                'jumlah_dana' => 'Jumlah penyaluran melebihi saldo tersedia: Rp '.number_format($saldo, 0, ',', '.'),
+            ]);
+        }
+    }
+
+    /**
+     * Sisa hak amil all-time: total teoritis (% x penerimaan verified,
+     * exclude Penyaluran Langsung) dikurangi total penggunaan tercatat.
+     */
+    public function getSisaHakAmil(?int $kecualikanPenggunaanId = null): float
+    {
+        $totalTeoritis = (float) Donasi::where('donasis.status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
+            ->leftJoin('sumber_dana_penyalurans', 'jenis_donasis.sumber_dana_penyaluran_id', '=', 'sumber_dana_penyalurans.id')
+            ->sum(DB::raw('(COALESCE(donasis.jumlah, 0) + COALESCE(donasis.perkiraan_nilai_barang, 0)) * COALESCE(sumber_dana_penyalurans.persentase_hak_amil, 0) / 100'));
+
+        $terpakai = (float) \App\Models\PenggunaanHakAmil::when(
+            $kecualikanPenggunaanId,
+            fn ($q) => $q->where('id', '!=', $kecualikanPenggunaanId)
+        )->sum('jumlah');
+
+        return $totalTeoritis - $terpakai;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function assertCukupHakAmil(float $jumlah, ?int $kecualikanPenggunaanId = null): void
+    {
+        $sisa = $this->getSisaHakAmil($kecualikanPenggunaanId);
+        if ($jumlah > $sisa) {
+            throw ValidationException::withMessages([
+                'jumlah' => 'Jumlah penggunaan melebihi sisa hak amil: Rp '.number_format($sisa, 0, ',', '.'),
+            ]);
+        }
     }
 
     protected function computeSaldoTersedia(int $sumberDanaId): float
@@ -502,22 +556,22 @@ class DanaService
     }
 
     /**
-     * Mendapatkan detail jenis penggunaan hak amil
+     * Mendapatkan detail jenis penggunaan hak amil.
+     * Sumber: tabel penggunaan_hak_amils (sama seperti laporan hak amil),
+     * bukan program_penyalurans.
      */
     public function getDetailJenisPenggunaanAmil(string $startDate, string $endDate): array
     {
-        // Ambil semua pengeluaran yang dikategorikan sebagai hak amil
-        $penggunaanAmil = DB::table('program_penyalurans as pp')
-            ->join('sumber_dana_penyalurans as sdp', 'pp.sumber_dana_penyaluran_id', '=', 'sdp.id')
-            ->where('sdp.nama_sumber_dana', 'LIKE', '%hak amil%')
-            ->whereBetween('pp.tanggal_penyaluran', [$startDate, $endDate])
+        $penggunaanAmil = DB::table('penggunaan_hak_amils as pha')
+            ->leftJoin('jenis_penggunaan_hak_amils as jpha', 'pha.jenis_penggunaan_hak_amil_id', '=', 'jpha.id')
+            ->whereBetween('pha.tanggal', [$startDate, $endDate])
             ->select(
-                'pp.nama_program as keperluan',
-                'pp.jumlah_dana as jumlah',
-                'pp.tanggal_penyaluran as tanggal',
-                'pp.keterangan'
+                DB::raw('COALESCE(jpha.nama, pha.keterangan, "-") as keperluan'),
+                'pha.jumlah as jumlah',
+                'pha.tanggal as tanggal',
+                'pha.keterangan'
             )
-            ->orderBy('pp.tanggal_penyaluran', 'desc')
+            ->orderBy('pha.tanggal', 'desc')
             ->get();
 
         return $penggunaanAmil->map(function ($item) {
@@ -648,7 +702,7 @@ class DanaService
                 DB::raw('SUM(pha.jumlah) as total_jumlah'),
                 DB::raw('COUNT(pha.id) as jumlah_transaksi')
             )
-            ->whereBetween('pha.tanggal_penggunaan', [$startDate, $endDate])
+            ->whereBetween('pha.tanggal', [$startDate, $endDate])
             ->groupBy('jpha.id', 'jpha.nama')
             ->orderBy('jpha.nama')
             ->get()

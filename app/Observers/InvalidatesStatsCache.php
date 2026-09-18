@@ -20,4 +20,14 @@ class InvalidatesStatsCache
     {
         StatsCache::flush();
     }
+
+    public function restored(): void
+    {
+        StatsCache::flush();
+    }
+
+    public function forceDeleted(): void
+    {
+        StatsCache::flush();
+    }
 }

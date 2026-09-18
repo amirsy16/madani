@@ -23,7 +23,9 @@ class ZakatStatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        return StatsCache::remember('zakat_overview', function () {
+        // Key memuat bulan berjalan agar pergantian bulan langsung hitung ulang
+        // (tanpa menunggu TTL / data berubah).
+        return StatsCache::remember('zakat_overview:'.now()->format('Y-m'), function () {
             return $this->computeStats();
         });
     }
@@ -57,9 +59,15 @@ class ZakatStatsOverview extends BaseWidget
             ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->count();
 
+        // --- Nilai barang (bagian dari total donasi) ---
+        $totalNilaiBarang = Donasi::where('status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->sum(DB::raw('COALESCE(perkiraan_nilai_barang, 0)'));
+
         // --- 5. Hak Amil Bulan Ini ---
         // Formula sama dengan Donasi::getHakAmilAttribute: total_nilai * persentase sumber dana / 100
         $hakAmilBulanIni = (float) Donasi::where('status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->whereMonth('tanggal_donasi', $currentMonth)
             ->whereYear('tanggal_donasi', $currentYear)
             ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
@@ -69,7 +77,7 @@ class ZakatStatsOverview extends BaseWidget
         return [
             // 1. Total Donasi Keseluruhan
             Stat::make('Total Donasi', 'Rp ' . number_format($totalDonasiKeseluruhan, 0, ',', '.'))
-                ->description('Terverifikasi')
+                ->description('Rp ' . number_format($totalNilaiBarang, 0, ',', '.') . ' nilai barang')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
 
