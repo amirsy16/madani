@@ -2,59 +2,60 @@
 
 namespace App\Filament\Resources;
 
-use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\Donasi;
-use App\Models\Regency;
-use App\Models\Village;
-use Filament\Forms\Get;
-use Illuminate\Support\HtmlString;
-use Filament\Forms\Set;
+use App\Filament\Resources\DonasiResource\Pages;
 use App\Models\District;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
+use App\Models\Donasi;
+use App\Models\Donatur;
 use App\Models\JenisDonasi;
-use Filament\Resources\Resource;
-use App\Imports\SistemImportLengkap;
 use App\Models\KategoriDanaNonHalal;
 use App\Models\KategoriInfaqTerikat;
-use Illuminate\Support\Facades\Auth;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use App\Services\PdfService;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
-use Filament\Tables\Enums\FiltersLayout;
+use App\Models\Regency;
+use App\Models\Village;
+use Carbon\Carbon;
+use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Placeholder;
-use App\Filament\Resources\DonasiResource\Pages;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Models\Donatur; // Pastikan model Donatur diimpor jika digunakan di URL
-use Filament\Tables\Actions\Action; // Changed from Filament\Pages\Actions\Action
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString; // Pastikan model Donatur diimpor jika digunakan di URL
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction; // Changed from Filament\Pages\Actions\Action
 
 class DonasiResource extends Resource
 {
     protected static ?string $model = Donasi::class;
-    
+
     // Konfigurasi navigasi
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+
     protected static ?string $navigationLabel = 'Donasi';
+
     protected static ?string $modelLabel = 'Donasi';
+
     protected static ?string $pluralModelLabel = 'Donasi';
+
     protected static ?int $navigationSort = 2;
-    
+
     public static function getSlug(): string
     {
         return 'donasi';
     }
-    
+
     public static function getNavigationGroup(): ?string
     {
         return __('app.navigation.groups.program');
@@ -63,7 +64,7 @@ class DonasiResource extends Resource
     /**
      * Definisi form untuk halaman create dan edit donasi
      */
-    public static function form(Form $form): Form 
+    public static function form(Form $form): Form
     {
         return $form->schema([
             // Bagian 1: Informasi Donatur dan Jenis Donasi
@@ -76,8 +77,8 @@ class DonasiResource extends Resource
                         ->relationship('donatur', 'nama')
                         ->searchable()
                         ->preload()
-                        ->required(fn (Get $get) => !$get('atas_nama_hamba_allah'))
-                        ->visible(fn (Get $get) => !$get('atas_nama_hamba_allah'))
+                        ->required(fn (Get $get) => ! $get('atas_nama_hamba_allah'))
+                        ->visible(fn (Get $get) => ! $get('atas_nama_hamba_allah'))
                         ->createOptionForm([
                             Forms\Components\Select::make('gender')
                                 ->options([
@@ -124,9 +125,10 @@ class DonasiResource extends Resource
                                 ->label('Kota/Kabupaten')
                                 ->options(function (Get $get) {
                                     $provinceId = $get('province_id');
-                                    if (!$provinceId) {
+                                    if (! $provinceId) {
                                         return [];
                                     }
+
                                     return Regency::where('province_id', $provinceId)
                                         ->pluck('name', 'id')
                                         ->toArray();
@@ -141,9 +143,10 @@ class DonasiResource extends Resource
                                 ->label('Kecamatan')
                                 ->options(function (Get $get) {
                                     $regencyId = $get('city_id');
-                                    if (!$regencyId) {
+                                    if (! $regencyId) {
                                         return [];
                                     }
+
                                     return District::where('regency_id', $regencyId)
                                         ->pluck('name', 'id')
                                         ->toArray();
@@ -155,9 +158,10 @@ class DonasiResource extends Resource
                                 ->label('Desa/Kelurahan')
                                 ->options(function (Get $get) {
                                     $districtId = $get('district_id');
-                                    if (!$districtId) {
+                                    if (! $districtId) {
                                         return [];
                                     }
+
                                     return Village::where('district_id', $districtId)
                                         ->pluck('name', 'id')
                                         ->toArray();
@@ -169,7 +173,7 @@ class DonasiResource extends Resource
                                 ->columnSpanFull(),
                         ])
                         ->label('Donatur'),
-                    
+
                     Toggle::make('atas_nama_hamba_allah')
                         ->label('Sembunyikan Nama Donatur')
                         ->helperText('Donasi akan tercatat sebagai "Hamba Allah"')
@@ -180,14 +184,14 @@ class DonasiResource extends Resource
                                 $set('donatur_id', null);
                             }
                         }),
-                    
+
                     // Conditional placeholder to show when anonymous mode is active
                     Forms\Components\Placeholder::make('anonymous_notice')
                         ->label('Mode Donasi Anonim')
                         ->content('✅ Donasi akan dicatat sebagai "Hamba Allah". Field donatur disembunyikan.')
                         ->visible(fn (Get $get) => $get('atas_nama_hamba_allah'))
                         ->extraAttributes(['class' => 'text-success-600 bg-success-50 p-3 rounded-lg border border-success-200']),
-                    
+
                     Select::make('jenis_donasi_id')
                         ->relationship('jenisDonasi', 'nama', function ($query) {
                             return $query->where('aktif', true);
@@ -207,7 +211,7 @@ class DonasiResource extends Resource
                                 $set('jumlah', 0);
                             }
                         }),
-                    
+
                     DatePicker::make('tanggal_donasi')
                         ->default(now())
                         ->required()
@@ -215,7 +219,7 @@ class DonasiResource extends Resource
                         ->maxDate(now())
                         ->displayFormat('d M Y'),
                 ]),
-            
+
             // Bagian 2: Detail Donasi (Jumlah/Barang)
             Forms\Components\Section::make('Detail Donasi')
                 ->description('Informasi jumlah dan jenis donasi')
@@ -237,28 +241,32 @@ class DonasiResource extends Resource
                                 }
                             }',
                             'x-on:input' => '$event.target.value = formatNumber($event.target.value)',
-                            'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)'
+                            'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)',
                         ])
                         ->required(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
-                            if (!$jenisDonasiId) return true; // Jika jenis donasi belum dipilih, anggap wajib
+                            if (! $jenisDonasiId) {
+                                return true;
+                            } // Jika jenis donasi belum dipilih, anggap wajib
                             $jenisDonasi = JenisDonasi::find($jenisDonasiId);
-                            return !($jenisDonasi && $jenisDonasi->apakah_barang); // Wajib jika bukan barang
+
+                            return ! ($jenisDonasi && $jenisDonasi->apakah_barang); // Wajib jika bukan barang
                         })
-                        ->dehydrateStateUsing(fn ($state) => 
-                            $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
+                        ->dehydrateStateUsing(fn ($state) => $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                         )
-                        ->formatStateUsing(fn ($state) => 
-                            $state ? number_format($state, 0, ',', '.') : null
+                        ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null
                         )
                         // Kondisi visible agar tidak muncul jika donasi barang
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
-                            if (!$jenisDonasiId) return true; // Tampil jika jenis belum dipilih
+                            if (! $jenisDonasiId) {
+                                return true;
+                            } // Tampil jika jenis belum dipilih
                             $jenisDonasi = JenisDonasi::find($jenisDonasiId);
-                            return !$jenisDonasi || !$jenisDonasi->apakah_barang; // Tampil jika bukan barang
+
+                            return ! $jenisDonasi || ! $jenisDonasi->apakah_barang; // Tampil jika bukan barang
                         }),
-                    
+
                     Select::make('keterangan_infak_khusus')
                         ->label('Kategori Infaq Terikat/DSKL')
                         ->options(function () {
@@ -270,15 +278,18 @@ class DonasiResource extends Resource
                         ->preload()
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
-                            if (!$jenisDonasiId) return false;
+                            if (! $jenisDonasiId) {
+                                return false;
+                            }
                             $jenisDonasi = JenisDonasi::find($jenisDonasiId);
-                            return $jenisDonasi && 
-                                   $jenisDonasi->membutuhkan_keterangan_tambahan && 
-                                   !$jenisDonasi->mengandung_dana_non_halal && 
-                                   !$jenisDonasi->apakah_barang;
+
+                            return $jenisDonasi &&
+                                   $jenisDonasi->membutuhkan_keterangan_tambahan &&
+                                   ! $jenisDonasi->mengandung_dana_non_halal &&
+                                   ! $jenisDonasi->apakah_barang;
                         })
                         ->columnSpanFull(),
-                    
+
                     Select::make('kategori_dana_non_halal_id')
                         ->label('Kategori Dana Non Halal')
                         ->options(function () {
@@ -290,23 +301,29 @@ class DonasiResource extends Resource
                         ->preload()
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
-                            if (!$jenisDonasiId) return false;
+                            if (! $jenisDonasiId) {
+                                return false;
+                            }
                             $jenisDonasi = JenisDonasi::find($jenisDonasiId);
-                            return $jenisDonasi && $jenisDonasi->mengandung_dana_non_halal && !$jenisDonasi->apakah_barang;
+
+                            return $jenisDonasi && $jenisDonasi->mengandung_dana_non_halal && ! $jenisDonasi->apakah_barang;
                         })
                         ->columnSpanFull(),
-                    
+
                     Textarea::make('deskripsi_barang')
                         ->label('Deskripsi Barang')
                         ->placeholder('Contoh: Beras 5kg kualitas premium, Pakaian layak pakai 10 pcs, dll')
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
-                            if (!$jenisDonasiId) return false;
+                            if (! $jenisDonasiId) {
+                                return false;
+                            }
                             $jenisDonasi = JenisDonasi::find($jenisDonasiId);
+
                             return $jenisDonasi && $jenisDonasi->apakah_barang;
                         })
                         ->columnSpanFull(),
-                    
+
                     TextInput::make('perkiraan_nilai_barang')
                         ->label('Perkiraan Nilai Barang')
                         ->helperText('Estimasi nilai barang dalam Rupiah')
@@ -322,22 +339,24 @@ class DonasiResource extends Resource
                                 }
                             }',
                             'x-on:input' => '$event.target.value = formatNumber($event.target.value)',
-                            'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)'
+                            'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)',
                         ])
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
-                            if (!$jenisDonasiId) return false;
+                            if (! $jenisDonasiId) {
+                                return false;
+                            }
                             $jenisDonasi = JenisDonasi::find($jenisDonasiId);
+
                             return $jenisDonasi && $jenisDonasi->apakah_barang;
                         })
-                        ->dehydrateStateUsing(fn ($state) => 
-                            $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
+                        ->dehydrateStateUsing(fn ($state) => $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                         )
-                         ->formatStateUsing(fn ($state) =>  // Menggunakan formatStateUsing untuk tampilan
-                            $state ? number_format($state, 0, ',', '.') : null
+                        ->formatStateUsing(fn ($state) =>  // Menggunakan formatStateUsing untuk tampilan
+                           $state ? number_format($state, 0, ',', '.') : null
                         ),
                 ]),
-            
+
             // Bagian 3: Metode Pembayaran dan Bukti
             Forms\Components\Section::make('Metode Pembayaran')
                 ->description('Informasi cara pembayaran dan bukti')
@@ -351,7 +370,7 @@ class DonasiResource extends Resource
                         ->searchable()
                         ->preload()
                         ->label('Metode Pembayaran'),
-                    
+
                     Select::make('fundraiser_id')
                         ->relationship('fundraiser', 'nama_fundraiser', function ($query) {
                             return $query->where('aktif', true);
@@ -360,7 +379,7 @@ class DonasiResource extends Resource
                         ->preload()
                         ->label('Fundraiser')
                         ->placeholder('Pilih jika donasi melalui fundraiser'),
-                    
+
                     FileUpload::make('bukti_pembayaran')
                         ->disk('private')
                         ->visibility('private')
@@ -373,13 +392,13 @@ class DonasiResource extends Resource
                         ->label('Bukti Pembayaran')
                         ->helperText('Upload foto bukti transfer/pembayaran (opsional)')
                         ->columnSpanFull(),
-                    
+
                     Textarea::make('catatan_donatur')
                         ->label('Catatan dari Donatur')
                         ->placeholder('Catatan atau pesan dari donatur (opsional)')
                         ->columnSpanFull(),
                 ]),
-            
+
             // Bagian 4: Status Konfirmasi (collapsible)
             Forms\Components\Section::make('Status Konfirmasi')
                 ->description('Informasi verifikasi donasi')
@@ -403,63 +422,63 @@ class DonasiResource extends Resource
                                 $set('dikonfirmasi_pada', null);
                             }
                         }),
-                    
+
                     Textarea::make('catatan_konfirmasi')
                         ->label('Catatan Konfirmasi Admin')
                         ->placeholder('Catatan internal terkait verifikasi donasi')
                         ->columnSpanFull(),
-                    
+
                     Forms\Components\Hidden::make('dikofirmasi_oleh_user_id')
                         ->dehydrated(),
-                    
+
                     Forms\Components\Hidden::make('dikonfirmasi_pada')
                         ->dehydrated(),
-                    
+
                     Placeholder::make('info_konfirmasi')
                         ->label('Informasi Konfirmasi')
                         ->content(function (?Donasi $record): HtmlString|string {
-                            if (!$record || !$record->dikonfirmasi_pada) {
+                            if (! $record || ! $record->dikonfirmasi_pada) {
                                 return 'Donasi belum dikonfirmasi.';
                             }
-                            
+
                             $konfirmasiOleh = $record->dikonfirmasiOleh?->name ?? 'Sistem';
                             $tanggal = Carbon::parse($record->dikonfirmasi_pada)->translatedFormat('d M Y H:i');
-                            $status = match($record->status_konfirmasi) {
+                            $status = match ($record->status_konfirmasi) {
                                 'verified' => 'Terverifikasi',
                                 'rejected' => 'Ditolak',
                                 default => ucfirst($record->status_konfirmasi)
                             };
-                            
+
                             return new HtmlString("Status: {$status}<br>Dikonfirmasi oleh: {$konfirmasiOleh}<br>Pada: {$tanggal}");
                         })
                         ->hiddenOn('create'),
                 ])
                 ->collapsible(),
-            
+
             // Bagian 5: Informasi Pencatatan (read-only)
             Placeholder::make('info_pencatatan') // Mengganti key agar unik dari field lain
                 ->label('Informasi Pencatatan')
                 ->content(function (?Donasi $record): HtmlString|string {
                     $currentUser = Auth::user();
-                    if (!$record || $record->wasRecentlyCreated || !$record->dicatatOleh) { // Cek jika record baru atau belum ada pencatat
-                        return 'Akan dicatat oleh: ' . ($currentUser?->name ?? 'Sistem');
+                    if (! $record || $record->wasRecentlyCreated || ! $record->dicatatOleh) { // Cek jika record baru atau belum ada pencatat
+                        return 'Akan dicatat oleh: '.($currentUser?->name ?? 'Sistem');
                     }
-                    
+
                     $dicatatOleh = $record->dicatatOleh?->name ?? 'Sistem';
                     $tanggal = $record->created_at?->translatedFormat('d M Y H:i') ?? '-';
-                    
+
                     return new HtmlString("Dicatat oleh: {$dicatatOleh}<br>Pada: {$tanggal}");
                 })
                 ->hiddenOn('edit'), // Tampil saat create dan view, sembunyi saat edit
-            
+
             // Hidden fields for system tracking
             TextInput::make('nomor_transaksi_unik')
-                ->default(fn () => 'TRX' . strtoupper(uniqid()))
+                ->default(fn () => 'TRX'.strtoupper(uniqid()))
                 ->dehydrated()
                 ->required()
                 ->unique(Donasi::class, 'nomor_transaksi_unik', ignoreRecord: true)
                 ->readOnlyOn('edit'), // Hanya bisa diisi saat create
-            
+
             Forms\Components\Hidden::make('dicatat_oleh_user_id')
                 ->default(fn () => Auth::id())
                 ->dehydrated(),
@@ -469,7 +488,7 @@ class DonasiResource extends Resource
     /**
      * Definisi tabel untuk halaman list donasi
      */
-    public static function table(Table $table): Table 
+    public static function table(Table $table): Table
     {
         return $table
             ->columns([
@@ -480,7 +499,7 @@ class DonasiResource extends Resource
                     ->copyable()
                     ->limit(12)
                     ->tooltip(fn (Donasi $record): ?string => $record->nomor_transaksi_unik),
-                
+
                 TextColumn::make('donatur.nama')
                     ->label('Donatur')
                     ->searchable()
@@ -493,8 +512,10 @@ class DonasiResource extends Resource
                         if ($record->donatur) {
                             // Menambahkan prefix Bpk./Ibu berdasarkan jenis kelamin
                             $prefix = $record->donatur->gender === 'male' ? 'Bpk.' : 'Ibu';
-                            return $prefix . ' ' . $record->donatur->nama;
+
+                            return $prefix.' '.$record->donatur->nama;
                         }
+
                         return '-';
                     })
                     ->tooltip(function (Donasi $record): ?string {
@@ -503,21 +524,23 @@ class DonasiResource extends Resource
                         }
                         if ($record->donatur) {
                             $prefix = $record->donatur->gender === 'male' ? 'Bapak' : 'Ibu';
-                            return $prefix . ' ' . $record->donatur->nama;
+
+                            return $prefix.' '.$record->donatur->nama;
                         }
+
                         return null;
                     })
-                    ->url(fn (Donasi $record) => $record->donatur && !$record->atas_nama_hamba_allah ? 
+                    ->url(fn (Donasi $record) => $record->donatur && ! $record->atas_nama_hamba_allah ?
                         DonaturResource::getUrl('view', ['record' => $record->donatur_id]) : null)
                     ->color(fn (Donasi $record) => $record->atas_nama_hamba_allah ? 'gray' : 'primary'),
-                
+
                 TextColumn::make('jenisDonasi.nama')
                     ->label('Jenis Donasi')
                     ->searchable()
                     ->sortable()
                     ->limit(15)
                     ->tooltip(fn (Donasi $record): ?string => $record->jenisDonasi?->nama),
-                
+
                 TextColumn::make('jumlah')
                     ->label('Jumlah/Nilai')
                     ->sortable()
@@ -525,90 +548,97 @@ class DonasiResource extends Resource
                         if ($record->jenisDonasi?->apakah_barang) {
                             // Jika donasi barang, tampilkan perkiraan nilai barang
                             $nilai = $record->perkiraan_nilai_barang ?? 0;
-                            return 'Rp ' . number_format($nilai, 0, ',', '.') . ' (Barang)';
+
+                            return 'Rp '.number_format($nilai, 0, ',', '.').' (Barang)';
                         } else {
                             // Jika donasi uang, tampilkan jumlah donasi
-                            return 'Rp ' . number_format($state ?? 0, 0, ',', '.');
+                            return 'Rp '.number_format($state ?? 0, 0, ',', '.');
                         }
                     })
                     ->tooltip(function (Donasi $record): ?string {
                         if ($record->jenisDonasi?->apakah_barang) {
-                            return 'Perkiraan nilai: ' . $record->deskripsi_barang;
+                            return 'Perkiraan nilai: '.$record->deskripsi_barang;
                         }
+
                         return 'Donasi tunai';
                     }),
-                
+
                 TextColumn::make('tanggal_donasi')
                     ->date('d M Y')
                     ->sortable()
                     ->label('Tgl Donasi'),
-                
-                TextColumn::make('status_konfirmasi')
-                    ->badge()
+
+                IconColumn::make('status_konfirmasi')
                     ->searchable()
                     ->sortable()
+                    ->icon(fn (string $state): string => match ($state) {
+                        'pending' => 'heroicon-o-clock',
+                        'verified' => 'heroicon-o-check-circle',
+                        'rejected' => 'heroicon-o-x-circle',
+                        default => 'heroicon-o-question-mark-circle',
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
                         'verified' => 'success',
                         'rejected' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->tooltip(fn (Donasi $record): string => match ($record->status_konfirmasi) {
                         'pending' => 'Pending',
                         'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',
-                        default => $state,
+                        default => $record->status_konfirmasi,
                     }),
-                
+
                 TextColumn::make('metodePembayaran.nama')
                     ->label('Metode Bayar')
                     ->sortable()
                     ->limit(12)
                     ->tooltip(fn (Donasi $record): ?string => $record->metodePembayaran?->nama)
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 IconColumn::make('atas_nama_hamba_allah')
                     ->boolean()
                     ->label('Anonim')
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('fundraiser.nama_fundraiser')
                     ->label('Fundraiser')
                     ->limit(15)
                     ->tooltip(fn (Donasi $record): ?string => $record->fundraiser?->nama_fundraiser)
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('dicatatOleh.name') // Intelephense mungkin masih error di sini, tapi runtime harusnya OK
                     ->label('Dicatat Oleh')
                     ->sortable()
                     ->limit(15)
                     ->tooltip(fn (Donasi $record): ?string => $record->dicatatOleh?->name)
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('created_at')
                     ->dateTime('d M Y H:i')
                     ->label('Tgl Input')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('catatan_donatur')
                     ->label('Catatan Donatur')
                     ->limit(30)
                     ->tooltip(fn (Donasi $record): ?string => $record->catatan_donatur)
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('keterangan_infak_khusus')
                     ->label('Keterangan Infak')
                     ->limit(25)
                     ->tooltip(fn (Donasi $record): ?string => $record->keterangan_infak_khusus)
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('kategoriDanaNonHalal.nama')
                     ->label('Kategori Dana Non Halal')
                     ->limit(25)
                     ->tooltip(fn (Donasi $record): ?string => $record->kategoriDanaNonHalal?->nama)
                     ->toggleable(isToggledHiddenByDefault: true),
-                
+
                 TextColumn::make('deskripsi_barang')
                     ->label('Deskripsi Barang')
                     ->limit(25)
@@ -637,14 +667,15 @@ class DonasiResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['dari_tanggal'] ?? null) {
-                            $indicators['dari_tanggal'] = 'Dari ' . Carbon::parse($data['dari_tanggal'])->translatedFormat('d M Y');
+                            $indicators['dari_tanggal'] = 'Dari '.Carbon::parse($data['dari_tanggal'])->translatedFormat('d M Y');
                         }
                         if ($data['sampai_tanggal'] ?? null) {
-                            $indicators['sampai_tanggal'] = 'Sampai ' . Carbon::parse($data['sampai_tanggal'])->translatedFormat('d M Y');
+                            $indicators['sampai_tanggal'] = 'Sampai '.Carbon::parse($data['sampai_tanggal'])->translatedFormat('d M Y');
                         }
+
                         return $indicators;
                     }),
-                
+
                 // Filter berdasarkan bulan
                 SelectFilter::make('bulan_donasi')
                     ->label('Bulan Donasi')
@@ -670,7 +701,7 @@ class DonasiResource extends Resource
                             }
                         );
                     }),
-                
+
                 // Filter berdasarkan tahun
                 SelectFilter::make('tahun_donasi')
                     ->label('Tahun Donasi')
@@ -681,6 +712,7 @@ class DonasiResource extends Resource
                         for ($year = $currentYear; $year >= 2020; $year--) {
                             $years[$year] = $year;
                         }
+
                         return $years;
                     })
                     ->query(function (Builder $query, array $data): Builder {
@@ -691,30 +723,30 @@ class DonasiResource extends Resource
                             }
                         );
                     }),
-                
+
                 SelectFilter::make('jenis_donasi_id')
                     ->label('Jenis Donasi')
                     ->relationship('jenisDonasi', 'nama')
                     ->preload(),
-                
+
                 SelectFilter::make('metode_pembayaran_id')
                     ->label('Metode Pembayaran')
                     ->relationship('metodePembayaran', 'nama')
                     ->preload(),
-                
+
                 SelectFilter::make('status_konfirmasi')
                     ->label('Status Konfirmasi')
                     ->options([
-                        'pending' => 'Pending', 
-                        'verified' => 'Terverifikasi', 
+                        'pending' => 'Pending',
+                        'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',    ]),
-            
+
                 SelectFilter::make('fundraiser_id')
-                        ->relationship('fundraiser', 'nama_fundraiser')
-                        ->searchable()
-                        ->preload()
-                        ->label('Fundraiser'),
-                
+                    ->relationship('fundraiser', 'nama_fundraiser')
+                    ->searchable()
+                    ->preload()
+                    ->label('Fundraiser'),
+
                 SelectFilter::make('donatur.gender')
                     ->label('Jenis Kelamin Donatur')
                     ->options([
@@ -724,18 +756,18 @@ class DonasiResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] ?? null,
-                            fn (Builder $query, $gender): Builder => $query->whereHas('donatur', 
+                            fn (Builder $query, $gender): Builder => $query->whereHas('donatur',
                                 fn (Builder $query) => $query->where('gender', $gender)
                             )
                         );
                     }),
-            
+
                 Tables\Filters\TernaryFilter::make('atas_nama_hamba_allah')
                     ->label('Donasi Anonim')
                     ->placeholder('Semua')
                     ->trueLabel('Hanya Anonim')
                     ->falseLabel('Hanya Beridentitas'),
-                
+
                 Tables\Filters\Filter::make('jumlah_donasi')
                     ->label('Range Nilai Donasi')
                     ->form([
@@ -753,7 +785,7 @@ class DonasiResource extends Resource
                                     }
                                 }',
                                 'x-on:input' => '$event.target.value = formatNumber($event.target.value)',
-                                'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)'
+                                'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)',
                             ]),
                         Forms\Components\TextInput::make('max_donasi')
                             ->label('Maksimal (Rp)')
@@ -769,7 +801,7 @@ class DonasiResource extends Resource
                                     }
                                 }',
                                 'x-on:input' => '$event.target.value = formatNumber($event.target.value)',
-                                'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)'
+                                'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)',
                             ]),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -780,6 +812,7 @@ class DonasiResource extends Resource
                                     // Clean the value here in the query function
                                     $cleanMin = preg_replace('/[^0-9]/', '', $min);
                                     $cleanMin = $cleanMin ? (int) $cleanMin : 0;
+
                                     return $query->whereRaw('(jumlah + IFNULL(perkiraan_nilai_barang, 0)) >= ?', [$cleanMin]);
                                 }
                             )
@@ -789,6 +822,7 @@ class DonasiResource extends Resource
                                     // Clean the value here in the query function
                                     $cleanMax = preg_replace('/[^0-9]/', '', $max);
                                     $cleanMax = $cleanMax ? (int) $cleanMax : 999999999;
+
                                     return $query->whereRaw('(jumlah + IFNULL(perkiraan_nilai_barang, 0)) <= ?', [$cleanMax]);
                                 }
                             );
@@ -799,31 +833,23 @@ class DonasiResource extends Resource
                             // Clean the value for display
                             $cleanMin = preg_replace('/[^0-9]/', '', $data['min_donasi']);
                             $cleanMin = $cleanMin ? (int) $cleanMin : 0;
-                            $indicators['min_donasi'] = 'Min: Rp ' . number_format($cleanMin, 0, ',', '.');
+                            $indicators['min_donasi'] = 'Min: Rp '.number_format($cleanMin, 0, ',', '.');
                         }
                         if ($data['max_donasi'] ?? null) {
                             // Clean the value for display
                             $cleanMax = preg_replace('/[^0-9]/', '', $data['max_donasi']);
                             $cleanMax = $cleanMax ? (int) $cleanMax : 0;
-                            $indicators['max_donasi'] = 'Max: Rp ' . number_format($cleanMax, 0, ',', '.');
+                            $indicators['max_donasi'] = 'Max: Rp '.number_format($cleanMax, 0, ',', '.');
                         }
+
                         return $indicators;
-                    })
+                    }),
             ], layout: FiltersLayout::Modal)
             ->filtersFormColumns(4)
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                // Action untuk Generate PDF Invoice
-                Tables\Actions\Action::make('generateInvoice')
-                    ->label('Generate Invoice PDF')
-                    ->icon('heroicon-o-document-text')
-                    ->color('success')
-                    ->visible(fn (?Donasi $record = null) => $record && $record->status_konfirmasi === 'verified')
-                    ->url(fn (?Donasi $record = null) => $record ? route('invoice.download', $record) : '#')
-                    ->openUrlInNewTab(),
 
-                
                 // Action untuk Download PDF Invoice
                 Tables\Actions\Action::make('downloadPDF')
                     ->label('Download PDF')
@@ -833,7 +859,7 @@ class DonasiResource extends Resource
                     ->url(fn (?Donasi $record = null) => $record ? route('invoice.download', $record) : '#')
                     ->openUrlInNewTab()
                     ->requiresConfirmation(false),
-                
+
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -849,11 +875,11 @@ class DonasiResource extends Resource
     /**
      * Definisi relasi yang tersedia untuk resource ini
      */
-  public static function getRelations(): array
-{
-    return [
-    ];
-}
+    public static function getRelations(): array
+    {
+        return [
+        ];
+    }
 
     /**
      * Definisi halaman yang tersedia untuk resource ini
@@ -867,7 +893,7 @@ class DonasiResource extends Resource
             'edit' => Pages\EditDonasi::route('/{record}/edit'),
         ];
     }
-    
+
     /**
      * Definisi widget yang tersedia untuk resource ini
      */
@@ -877,17 +903,4 @@ class DonasiResource extends Resource
             DonasiResource\Widgets\DonasiOverviewStats::class,
         ];
     }
-    
-
 }
-
-
-
-
-
-
-
-
-
-
-
