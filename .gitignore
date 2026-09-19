@@ -37,3 +37,11 @@ yarn-error.log
 /storage/app/private/*
 /bootstrap/cache/*.php
 !/bootstrap/cache/.gitignore
+
+# Artefak kerja lokal & dokumentasi internal — tidak dipush
+/.agents/
+/.zcode/
+/AGENTS.md
+/apexchard.md
+/boost.json
+/opencode.json
