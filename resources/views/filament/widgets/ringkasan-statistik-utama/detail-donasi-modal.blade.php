@@ -1,32 +1,31 @@
 <div class="space-y-4">
     @php
-        $totalAmount = collect($this->detailDonasiData)->sum(function($d) { 
-            return ($d['jumlah'] ?? 0) + ($d['perkiraan_nilai_barang'] ?? 0); 
-        });
-        $uniqueDonors = collect($this->detailDonasiData)->pluck('donatur_id')->filter()->unique()->count();
+        $detail = $this->detailDonasiData;
+        $summary = $detail['summary'];
+        $offset = ($detail['page'] - 1) * \App\Filament\Widgets\RingkasanStatistikUtama::DETAIL_PER_PAGE;
     @endphp
 
 {{-- Menggunakan Filament Table Style - Compact Version --}}
 <div class="fi-ta-ctn divide-y divide-gray-200 dark:divide-white/10 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
-    {{-- Ringkasan Statistik - Compact --}}
+    {{-- Ringkasan Statistik - Compact (level-SQL, mencakup seluruh data bukan hanya halaman ini) --}}
     <div class="p-4">
         <div class="grid grid-cols-3 gap-4">
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-700 dark:text-gray-200">Total Transaksi</span>
                 <span class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                    {{ count($this->detailDonasiData) }}
+                    {{ number_format($summary['transaksi'], 0, ',', '.') }}
                 </span>
             </div>
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-700 dark:text-gray-200">Total Donatur Unik</span>
                 <span class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                    {{ collect($this->detailDonasiData)->pluck('donatur_nama')->unique()->count() }}
+                    {{ number_format($summary['donatur'], 0, ',', '.') }}
                 </span>
             </div>
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-gray-700 dark:text-gray-200">Total Nominal</span>
                 <span class="text-2xl font-semibold tracking-tight text-success-600 dark:text-success-400">
-                    Rp {{ number_format($detailDonasiType === 'barang_by_jenis' ? collect($this->detailDonasiData)->sum('nilai_barang') : collect($this->detailDonasiData)->sum('nominal'), 0, ',', '.') }}
+                    Rp {{ number_format($summary['nominal'], 0, ',', '.') }}
                 </span>
             </div>
         </div>
@@ -111,15 +110,15 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 whitespace-nowrap dark:divide-white/5">
-                @forelse($this->detailDonasiData as $index => $donasi)
-                    <tr wire:key="detail-donasi-{{ $donasi['id'] ?? $index }}" class="fi-ta-row [@media(hover:hover)]:transition [@media(hover:hover)]:duration-75 hover:bg-gray-50 dark:hover:bg-white/5">
+                @forelse($detail['rows'] as $index => $donasi)
+                    <tr wire:key="detail-donasi-{{ $donasi['id'] ?? ($offset + $index) }}" class="fi-ta-row [@media(hover:hover)]:transition [@media(hover:hover)]:duration-75 hover:bg-gray-50 dark:hover:bg-white/5">
                         <td class="fi-ta-cell p-0 first-of-type:ps-1 last-of-type:pe-1 sm:first-of-type:ps-2 sm:last-of-type:pe-2">
                             <div class="fi-ta-col-wrp">
                                 <div class="fi-ta-text grid w-full gap-y-1 px-2 py-2">
                                     <div class="flex">
                                         <div class="flex max-w-max">
                                             <div class="fi-ta-text-item inline-flex items-center gap-1.5 text-xs leading-5 text-gray-950 dark:text-white">
-                                                {{ $index + 1 }}
+                                                {{ $offset + $index + 1 }}
                                             </div>
                                         </div>
                                     </div>
@@ -266,7 +265,7 @@
                     </tr>
                 @endforelse
             </tbody>
-            @if(count($this->detailDonasiData) > 0)
+            @if($detail['total'] > 0)
                 <tfoot class="divide-y divide-gray-200 dark:divide-white/5">
                     <tr class="bg-gray-50 dark:bg-white/5">
                         <td colspan="{{ $detailDonasiType === 'barang_by_jenis' ? '7' : '5' }}" class="fi-ta-cell p-0 first-of-type:ps-1 last-of-type:pe-1 sm:first-of-type:ps-2 sm:last-of-type:pe-2">
@@ -282,7 +281,7 @@
                             <div class="fi-ta-text grid w-full gap-y-1 px-2 py-2">
                                 <div class="flex justify-end">
                                     <div class="fi-ta-text-item inline-flex items-center gap-1.5 font-bold text-sm leading-5 fi-color-custom text-custom-600 dark:text-custom-400" style="--c-400:var(--success-400);--c-600:var(--success-600);">
-                                        Rp {{ number_format($detailDonasiType === 'barang_by_jenis' ? collect($this->detailDonasiData)->sum('nilai_barang') : collect($this->detailDonasiData)->sum('nominal'), 0, ',', '.') }}
+                                        Rp {{ number_format($summary['nominal'], 0, ',', '.') }}
                                     </div>
                                 </div>
                             </div>
@@ -296,4 +295,41 @@
             @endif
         </table>
     </div>
+
+    {{-- Pagination --}}
+    @if($detail['lastPage'] > 0 && $detail['total'] > 0)
+        <div
+            class="flex items-center justify-between gap-3 flex-wrap px-4 py-3 border-t border-gray-200 dark:border-white/10"
+            wire:loading.class="opacity-50"
+            wire:target="goToDetailPage"
+        >
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+                Menampilkan {{ number_format($offset + 1, 0, ',', '.') }}–{{ number_format(min($offset + \App\Filament\Widgets\RingkasanStatistikUtama::DETAIL_PER_PAGE, $detail['total']), 0, ',', '.') }}
+                dari {{ number_format($detail['total'], 0, ',', '.') }} transaksi
+            </span>
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    wire:click="goToDetailPage({{ $detail['page'] - 1 }})"
+                    {{ $detail['page'] <= 1 ? 'disabled' : '' }}
+                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                    <x-heroicon-o-chevron-left class="w-3.5 h-3.5" />
+                    Sebelumnya
+                </button>
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Halaman {{ $detail['page'] }} / {{ $detail['lastPage'] }}
+                </span>
+                <button
+                    type="button"
+                    wire:click="goToDetailPage({{ $detail['page'] + 1 }})"
+                    {{ $detail['page'] >= $detail['lastPage'] ? 'disabled' : '' }}
+                    class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                    Berikutnya
+                    <x-heroicon-o-chevron-right class="w-3.5 h-3.5" />
+                </button>
+            </div>
+        </div>
+    @endif
 </div>

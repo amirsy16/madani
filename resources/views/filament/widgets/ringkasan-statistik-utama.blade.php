@@ -129,39 +129,39 @@
                             :color="$stat['color'] ?? 'gray'"
                             :icon="$statIcon"
                         >
-                            {{-- Tombol Selengkapnya untuk Infaq Terikat --}}
+                            {{-- Tombol Selengkapnya untuk Infaq Terikat: buka modal breakdown --}}
                             @if(str_contains($statLabel, 'INFAQ TERIKAT'))
                                 <button
-                                    wire:click="toggleInfaqTerikatDetail"
+                                    wire:click="openInfaqTerikatModal"
                                     type="button"
                                     class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 rounded-md transition-colors shadow-sm"
                                 >
-                                    <span>{{ $showInfaqTerikatDetail ? 'Sembunyikan Detail' : 'Lihat Selengkapnya' }}</span>
-                                    <x-heroicon-o-chevron-down class="w-3 h-3 transition-transform {{ $showInfaqTerikatDetail ? 'rotate-180' : '' }}" />
+                                    <span>Lihat Selengkapnya</span>
+                                    <x-heroicon-o-eye class="w-3 h-3" />
                                 </button>
                             @endif
 
-                            {{-- Tombol Selengkapnya untuk Dana Zakat --}}
+                            {{-- Tombol Selengkapnya untuk Dana Zakat: buka modal breakdown --}}
                             @if($statLabel === 'DANA ZAKAT')
                                 <button
-                                    wire:click="toggleZakatDetail"
+                                    wire:click="openZakatModal"
                                     type="button"
                                     class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 rounded-md transition-colors shadow-sm"
                                 >
-                                    <span>{{ $showZakatDetail ? 'Sembunyikan Detail' : 'Lihat Selengkapnya' }}</span>
-                                    <x-heroicon-o-chevron-down class="w-3 h-3 transition-transform {{ $showZakatDetail ? 'rotate-180' : '' }}" />
+                                    <span>Lihat Selengkapnya</span>
+                                    <x-heroicon-o-eye class="w-3 h-3" />
                                 </button>
                             @endif
 
-                            {{-- Tombol Selengkapnya untuk Donasi Barang --}}
+                            {{-- Tombol Selengkapnya untuk Donasi Barang: buka modal breakdown --}}
                             @if(str_contains($statLabel, 'DONASI BARANG'))
                                 <button
-                                    wire:click="toggleBarangDetail"
+                                    wire:click="openBarangModal"
                                     type="button"
                                     class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 rounded-md transition-colors shadow-sm"
                                 >
-                                    <span>{{ $showBarangDetail ? 'Sembunyikan Detail' : 'Lihat Selengkapnya' }}</span>
-                                    <x-heroicon-o-chevron-down class="w-3 h-3 transition-transform {{ $showBarangDetail ? 'rotate-180' : '' }}" />
+                                    <span>Lihat Selengkapnya</span>
+                                    <x-heroicon-o-eye class="w-3 h-3" />
                                 </button>
                             @endif
                         </x-metric-card>
@@ -179,180 +179,6 @@
                     </div>
                 @endforelse
             </div>
-
-            {{-- Detail Infaq Terikat per Kategori --}}
-            @if($showInfaqTerikatDetail && count($this->infaqTerikatDetail ?? []) > 0)
-                <div
-                    class="mt-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-sky-200 dark:border-sky-900/50 p-4"
-                    wire:loading.class="opacity-50"
-                    wire:target="toggleInfaqTerikatDetail"
-                >
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <x-heroicon-o-chart-pie class="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                            Detail Infaq Terikat per Kategori
-                        </h3>
-                        <x-status-badge :status="count($this->infaqTerikatDetail) . ' Kategori'" color="info" />
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($this->infaqTerikatDetail as $detail)
-                            <x-metric-card
-                                :label="$detail['kategori']"
-                                value="Rp {{ number_format($detail['total'], 0, ',', '.') }}"
-                                :description="$detail['jumlah_transaksi'] . ' transaksi'"
-                                color="info"
-                                icon="heroicon-o-viewfinder-circle"
-                                class="h-full"
-                            />
-                        @endforeach
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">
-                                Total {{ array_sum(array_column($this->infaqTerikatDetail, 'jumlah_transaksi')) }} transaksi dari {{ count($this->infaqTerikatDetail) }} kategori
-                            </span>
-                            <span class="text-gray-900 dark:text-gray-100 font-bold tabular-nums">
-                                Total: Rp {{ number_format(array_sum(array_column($this->infaqTerikatDetail, 'total')), 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Empty state untuk detail infaq terikat --}}
-            @if($showInfaqTerikatDetail && count($this->infaqTerikatDetail ?? []) === 0)
-                <div class="mt-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800 p-6 text-center">
-                    <x-heroicon-o-inbox class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                    <h3 class="text-gray-700 dark:text-gray-300 font-semibold mb-1">Belum Ada Detail Kategori</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        Belum ada data infaq terikat dengan kategori untuk periode ini.
-                    </p>
-                </div>
-            @endif
-
-            {{-- Detail Zakat per Jenis --}}
-            @if($showZakatDetail && count($this->zakatDetail ?? []) > 0)
-                <div
-                    class="mt-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-emerald-200 dark:border-emerald-900/50 p-4"
-                    wire:loading.class="opacity-50"
-                    wire:target="toggleZakatDetail"
-                >
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <x-heroicon-o-arrow-trending-up class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                            Detail Dana Zakat per Jenis
-                        </h3>
-                        <x-status-badge :status="count($this->zakatDetail) . ' Jenis'" color="success" />
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($this->zakatDetail as $detail)
-                            <x-metric-card
-                                :label="$detail['jenis']"
-                                value="Rp {{ number_format($detail['total'], 0, ',', '.') }}"
-                                :description="$detail['jumlah_transaksi'] . ' transaksi'"
-                                color="success"
-                                icon="heroicon-o-banknotes"
-                                class="h-full"
-                            >
-                                <button
-                                    wire:click="showZakatDonasi({{ \Illuminate\Support\Js::from($detail['jenis']) }})"
-                                    type="button"
-                                    class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 rounded-md transition-colors"
-                                >
-                                    <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5" />
-                                    Lihat Detail Donasi
-                                </button>
-                            </x-metric-card>
-                        @endforeach
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">
-                                Total {{ array_sum(array_column($this->zakatDetail, 'jumlah_transaksi')) }} transaksi dari {{ count($this->zakatDetail) }} jenis
-                            </span>
-                            <span class="text-gray-900 dark:text-gray-100 font-bold tabular-nums">
-                                Total: Rp {{ number_format(array_sum(array_column($this->zakatDetail, 'total')), 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Empty state untuk detail zakat --}}
-            @if($showZakatDetail && count($this->zakatDetail ?? []) === 0)
-                <div class="mt-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800 p-6 text-center">
-                    <x-heroicon-o-inbox class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                    <h3 class="text-gray-700 dark:text-gray-300 font-semibold mb-1">Belum Ada Detail Jenis</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        Belum ada data zakat dengan jenis untuk periode ini.
-                    </p>
-                </div>
-            @endif
-
-            {{-- Detail Donasi Barang per Jenis --}}
-            @if($showBarangDetail && count($this->barangDetail ?? []) > 0)
-                <div
-                    class="mt-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-amber-200 dark:border-amber-900/50 p-4"
-                    wire:loading.class="opacity-50"
-                    wire:target="toggleBarangDetail"
-                >
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <x-heroicon-o-archive-box class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                            Detail Donasi Barang per Jenis
-                        </h3>
-                        <x-status-badge :status="count($this->barangDetail) . ' Jenis'" color="warning" />
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($this->barangDetail as $detail)
-                            <x-metric-card
-                                :label="$detail['jenis']"
-                                value="Rp {{ number_format($detail['total'], 0, ',', '.') }}"
-                                :description="$detail['jumlah_transaksi'] . ' transaksi'"
-                                color="warning"
-                                icon="heroicon-o-archive-box"
-                                class="h-full"
-                            >
-                                <button
-                                    wire:click="showBarangDonasiByJenis({{ \Illuminate\Support\Js::from($detail['jenis']) }})"
-                                    type="button"
-                                    class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 rounded-md transition-colors"
-                                >
-                                    <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5" />
-                                    Lihat Detail Donasi
-                                </button>
-                            </x-metric-card>
-                        @endforeach
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">
-                                Total {{ array_sum(array_column($this->barangDetail, 'jumlah_transaksi')) }} transaksi dari {{ count($this->barangDetail) }} jenis
-                            </span>
-                            <span class="text-gray-900 dark:text-gray-100 font-bold tabular-nums">
-                                Total: Rp {{ number_format(array_sum(array_column($this->barangDetail, 'total')), 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Empty state untuk detail donasi barang --}}
-            @if($showBarangDetail && count($this->barangDetail ?? []) === 0)
-                <div class="mt-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800 p-6 text-center">
-                    <x-heroicon-o-inbox class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
-                    <h3 class="text-gray-700 dark:text-gray-300 font-semibold mb-1">Belum Ada Detail Jenis</h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        Belum ada data donasi barang dengan jenis untuk periode ini.
-                    </p>
-                </div>
-            @endif
         </div>
 
         {{-- Stats count info --}}
@@ -362,16 +188,191 @@
             </div>
         @endif
 
+        {{-- Modal Breakdown "Lihat Selengkapnya" --}}
+        @if($showBreakdownModal)
+            @php
+                $breakdownConfig = match ($showBreakdownModal) {
+                    'infaq_terikat' => [
+                        'title' => 'Detail Infaq Terikat per Kategori',
+                        'items' => $this->infaqTerikatDetail,
+                        'itemLabelKey' => 'kategori',
+                        'icon' => 'heroicon-o-chart-pie',
+                        'unitLabel' => 'kategori',
+                        'iconClass' => 'text-sky-600 dark:text-sky-400',
+                        'barClass' => 'bg-sky-500',
+                        'btnClass' => 'bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600',
+                    ],
+                    'zakat' => [
+                        'title' => 'Detail Dana Zakat per Jenis',
+                        'items' => $this->zakatDetail,
+                        'itemLabelKey' => 'jenis',
+                        'icon' => 'heroicon-o-arrow-trending-up',
+                        'unitLabel' => 'jenis',
+                        'iconClass' => 'text-emerald-600 dark:text-emerald-400',
+                        'barClass' => 'bg-emerald-500',
+                        'btnClass' => 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600',
+                    ],
+                    'barang' => [
+                        'title' => 'Detail Donasi Barang per Jenis',
+                        'items' => $this->barangDetail,
+                        'itemLabelKey' => 'jenis',
+                        'icon' => 'heroicon-o-archive-box',
+                        'unitLabel' => 'jenis',
+                        'iconClass' => 'text-amber-600 dark:text-amber-400',
+                        'barClass' => 'bg-amber-500',
+                        'btnClass' => 'bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600',
+                    ],
+                    default => null,
+                };
+                $breakdownItems = $breakdownConfig['items'] ?? [];
+                $breakdownTotalSum = array_sum(array_column($breakdownItems, 'total'));
+                $breakdownTotalTx = array_sum(array_column($breakdownItems, 'jumlah_transaksi'));
+            @endphp
+
+            @if($breakdownConfig)
+                <div
+                    class="fixed inset-0 z-50 overflow-y-auto"
+                    aria-labelledby="breakdown-modal-title"
+                    role="dialog"
+                    aria-modal="true"
+                    wire:key="breakdown-modal-{{ $showBreakdownModal }}"
+                    x-data
+                    @keydown.escape.window="$wire.closeBreakdownModal()"
+                >
+                    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                        {{-- Background overlay --}}
+                        <div
+                            class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                            aria-hidden="true"
+                            wire:click="closeBreakdownModal"
+                        ></div>
+
+                        <div class="relative w-full max-w-5xl bg-white dark:bg-gray-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all">
+                            {{-- Header --}}
+                            <div class="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                            <x-filament::icon
+                                                :icon="$breakdownConfig['icon']"
+                                                class="w-5 h-5 {{ $breakdownConfig['iconClass'] }}"
+                                            />
+                                            {{ $breakdownConfig['title'] }}
+                                        </h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            Periode: {{ $this->timePeriodLabel }} • {{ count($breakdownItems) }} {{ $breakdownConfig['unitLabel'] }} • {{ $breakdownTotalTx }} transaksi
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        wire:click="closeBreakdownModal"
+                                        class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                                    >
+                                        <x-heroicon-o-x-mark class="h-5 w-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Content --}}
+                            <div
+                                class="px-6 py-4 max-h-[70vh] overflow-y-auto"
+                                wire:loading.class="opacity-50"
+                                wire:target="openInfaqTerikatModal, openZakatModal, openBarangModal"
+                            >
+                                @if(count($breakdownItems) > 0)
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        @foreach($breakdownItems as $item)
+                                            @php
+                                                $itemLabel = $item[$breakdownConfig['itemLabelKey']];
+                                                $itemPct = $breakdownTotalSum > 0 ? ($item['total'] / $breakdownTotalSum) * 100 : 0;
+                                            @endphp
+                                            <div
+                                                class="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+                                                wire:key="breakdown-item-{{ $showBreakdownModal }}-{{ $itemLabel }}"
+                                            >
+                                                <div class="flex items-start justify-between gap-2 mb-1">
+                                                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $itemLabel }}</span>
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ number_format($itemPct, 1) }}%</span>
+                                                </div>
+                                                <div class="text-lg font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+                                                    Rp {{ number_format($item['total'], 0, ',', '.') }}
+                                                </div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                    {{ $item['jumlah_transaksi'] }} transaksi
+                                                </div>
+
+                                                {{-- Progress bar proporsi --}}
+                                                <div class="mt-2 h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                    <div
+                                                        class="h-full {{ $breakdownConfig['barClass'] }} rounded-full"
+                                                        style="width: {{ min(100, $itemPct) }}%"
+                                                    ></div>
+                                                </div>
+
+                                                <button
+                                                    wire:click="{{ match ($showBreakdownModal) {
+                                                        'infaq_terikat' => 'showInfaqTerikatDonasi',
+                                                        'zakat' => 'showZakatDonasi',
+                                                        'barang' => 'showBarangDonasiByJenis',
+                                                    } }}({{ \Illuminate\Support\Js::from($itemLabel) }})"
+                                                    type="button"
+                                                    class="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white {{ $breakdownConfig['btnClass'] }} rounded-md transition-colors"
+                                                >
+                                                    <x-heroicon-o-magnifying-glass class="w-3.5 h-3.5" />
+                                                    Lihat Detail Donasi
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="p-6 text-center">
+                                        <x-heroicon-o-inbox class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                                        <h4 class="text-gray-700 dark:text-gray-300 font-semibold mb-1">Belum Ada Data</h4>
+                                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                            Belum ada data untuk periode ini.
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Footer --}}
+                            <div class="bg-gray-50 dark:bg-gray-900/50 px-6 py-3 border-t border-gray-200 dark:border-gray-800">
+                                <div class="flex items-center justify-between flex-wrap gap-3">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                                        Total {{ $breakdownTotalTx }} transaksi dari {{ count($breakdownItems) }} {{ $breakdownConfig['unitLabel'] }}
+                                    </span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-gray-900 dark:text-gray-100 font-bold tabular-nums">
+                                            Total: Rp {{ number_format($breakdownTotalSum, 0, ',', '.') }}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            wire:click="closeBreakdownModal"
+                                            class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        >
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endif
+
         {{-- Modal Detail Donasi menggunakan Livewire --}}
         @if($showDetailDonasiModal)
             <div
-                class="fixed inset-0 z-50 overflow-y-auto"
+                class="fixed inset-0 z-[60] overflow-y-auto"
                 aria-labelledby="modal-title"
                 role="dialog"
                 aria-modal="true"
                 wire:key="detail-modal-{{ $detailDonasiType }}-{{ $selectedKategori ?? $selectedJenisZakat }}"
+                x-data
+                @keydown.escape.window="$wire.closeDetailDonasiModal()"
             >
-                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                     {{-- Background overlay --}}
                     <div
                         class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
@@ -379,10 +380,7 @@
                         wire:click="closeDetailDonasiModal"
                     ></div>
 
-                    {{-- Center modal --}}
-                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                    <div class="inline-block align-bottom bg-white dark:bg-gray-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-7xl sm:w-full">
+                    <div class="relative w-full max-w-7xl bg-white dark:bg-gray-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all">
                         {{-- Header --}}
                         <div class="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-b border-gray-200 dark:border-gray-800">
                             <div class="flex items-center justify-between">
@@ -397,7 +395,7 @@
                                         @endif
                                     </h3>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        Total {{ count($this->detailDonasiData) }} transaksi • Periode: {{ $this->timePeriodLabel }}
+                                        Total {{ number_format($this->detailDonasiData['total'], 0, ',', '.') }} transaksi • Periode: {{ $this->timePeriodLabel }}
                                     </p>
                                 </div>
                                 <button
