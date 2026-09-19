@@ -77,11 +77,6 @@ Akun pengelola dibuat melalui provisioning admin — tidak disertakan kredensial
 php artisan test
 ```
 
-## Catatan Keamanan
-
-- Direktori `database/seeders/` sengaja **tidak dipublikasikan** karena berisi data nyata donatur.
-- Data sensitif (`.env`, log, berkas unggahan) berada di luar version control.
-
 ---
 
 <div align="center">
