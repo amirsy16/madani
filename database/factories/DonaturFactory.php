@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Pekerjaan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,10 +19,10 @@ class DonaturFactory extends Factory
     {
         return [
             'nama' => $this->faker->name,
-            'alamat' => $this->faker->address,
-            'nomor_hp' => $this->faker->phoneNumber,
-            'email' => $this->faker->safeEmail,
-            'pekerjaan' => $this->faker->jobTitle,
+            'alamat_detail' => $this->faker->address,
+            'nomor_hp' => $this->faker->unique()->phoneNumber,
+            'email' => $this->faker->unique()->safeEmail,
+            'pekerjaan_id' => Pekerjaan::factory(),
         ];
     }
 }
