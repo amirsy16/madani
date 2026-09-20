@@ -23,7 +23,7 @@ yarn-error.log
 /_forensik
 /storage/app/private
 
-# Seeder berisi data nyata — tidak dipush
+# Seeder tidak dipush sama sekali (data riil maupun peran) — diatur lokal
 /database/seeders/
 
 # Runtime storage — tidak dipush
@@ -34,6 +34,7 @@ yarn-error.log
 /storage/framework/sessions/*
 /storage/framework/views/*
 !/storage/framework/views/.htaccess
+/storage/framework/testing
 /storage/app/private/*
 /bootstrap/cache/*.php
 !/bootstrap/cache/.gitignore

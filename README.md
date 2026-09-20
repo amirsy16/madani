@@ -24,13 +24,13 @@ SIMADI (sebelumnya madaniX) adalah aplikasi manajemen dana ZIS yang mencatat pen
 
 | Modul | Kemampuan |
 |---|---|
-| 🧕 **Manajemen Donatur** | Profil donatur, kode otomatis, kategori loyalitas (Platinum–Bronze), riwayat & donasi anonim |
-| 💰 **Penghimpunan Dana** | Zakat (maal/fitrah), infaq terikat & tidak terikat, sedekah, wakaf, DSKL, donasi barang, dan CSR |
-| 🎯 **Fundraiser** | Target donasi, performa fundraiser, atribusi sumber donasi |
+| 🧕 **Manajemen Donatur** | Profil donatur, kode otomatis, segmentasi kontribusi (Top Donatur), riwayat & donasi anonim |
+| 💰 **Penghimpunan Dana** | Zakat (maal/fitrah), infaq terikat & tidak terikat, sedekah, DSKL, donasi barang, dan CSR |
+| 🎯 **Fundraiser** | Performa fundraiser, atribusi sumber donasi |
 | 📤 **Penyaluran** | Program penyaluran, penyaluran langsung, penerima manfaat (asnaf), dana non-halal terpisah |
-| 👥 **Hak Amil** | Persentase hak amil per sumber dana, pencatatan penggunaan, sisa saldo |
+| 👥 **Hak Amil** | Persentase hak amil per sumber dana (maks 12,5% sesuai PSAK 109), pencatatan penggunaan, sisa saldo |
 | 📊 **Pusat Statistik** | Dashboard analitik ApexCharts, filter periode, modal breakdown per kategori, ekspor data |
-| 🔐 **Kontrol Akses** | Manajemen peran & izin (Spatie Permission), audit trail aktivitas |
+| 🔐 **Kontrol Akses** | Empat peran pengguna (Admin, Fundraiser, Pengelola Keuangan, Pimpinan) dengan peran & izin Spatie Permission + Filament Shield |
 
 ## Teknologi
 
