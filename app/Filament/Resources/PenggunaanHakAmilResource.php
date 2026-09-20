@@ -3,30 +3,30 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PenggunaanHakAmilResource\Pages;
-use App\Filament\Resources\PenggunaanHakAmilResource\RelationManagers;
 use App\Models\PenggunaanHakAmil;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PenggunaanHakAmilResource extends Resource
 {
     protected static ?string $model = PenggunaanHakAmil::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
+
     protected static ?string $navigationGroup = 'Laporan & Keuangan';
+
     protected static ?string $modelLabel = 'Penggunaan Hak Amil';
+
     protected static ?int $navigationSort = 3;
-    
+
     public static function getSlug(): string
     {
         return 'penggunaan-amil';
     }
-    
+
     public static function getNavigationGroup(): ?string
     {
         return __('app.navigation.groups.reports_finance');
@@ -46,9 +46,14 @@ class PenggunaanHakAmilResource extends Resource
                 Forms\Components\TextInput::make('jumlah')
                     ->required()
                     ->numeric()
+                    ->minValue(1)
+                    ->validationMessages([
+                        'min' => 'Jumlah penggunaan hak amil minimal Rp 1.',
+                    ])
                     ->helperText(fn ($record = null) => 'Sisa hak amil: Rp '.number_format(app(\App\Services\DanaService::class)->getSisaHakAmil($record?->id), 0, ',', '.'))
                     ->rule(function ($record = null) {
                         $danaService = app(\App\Services\DanaService::class);
+
                         return function (string $attribute, $value, \Closure $fail) use ($danaService, $record) {
                             try {
                                 $danaService->assertCukupHakAmil(floatval($value), $record?->id);

@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ProgramPenyaluranResource\Pages;
 use App\Filament\Resources\ProgramPenyaluranResource;
 use App\Models\ProgramPenyaluran;
 use App\Services\DanaService;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +27,13 @@ class CreateProgramPenyaluran extends CreateRecord
         $sumberDanaId = $this->data['sumber_dana_penyaluran_id'] ?? null;
         $jumlah = floatval($this->data['jumlah_dana'] ?? 0);
 
-        if (!$sumberDanaId || $jumlah <= 0) {
+        if ($jumlah <= 0) {
+            throw ValidationException::withMessages([
+                'jumlah_dana' => 'Jumlah dana penyaluran harus lebih dari 0.',
+            ]);
+        }
+
+        if (! $sumberDanaId) {
             return;
         }
 

@@ -3,18 +3,17 @@
 namespace App\Filament\Resources\ProgramPenyaluranResource\Pages;
 
 use App\Filament\Resources\ProgramPenyaluranResource;
-use App\Imports\ProgramPenyaluranImport;
-use App\Models\SumberDanaPenyaluran;
-use App\Models\BidangProgram;
 use App\Models\Asnaf;
+use App\Models\BidangProgram;
 use App\Models\JenisDonasi;
 use App\Models\ProgramPenyaluran;
+use App\Models\SumberDanaPenyaluran;
+use Carbon\Carbon;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class ListProgramPenyalurans extends ListRecords
 {
@@ -31,7 +30,7 @@ class ListProgramPenyalurans extends ListRecords
                 ->validateUsing([
                     'tanggal_penyaluran' => 'required',
                     'nama_program' => 'required|string|max:255',
-                    'jumlah_dana' => 'required|numeric|min:0',
+                    'jumlah_dana' => 'required|numeric|min:1',
                     'sumber_dana' => 'required|string',
                     'bidang_program' => 'required|string',
                     'lokasi_penyaluran' => 'required|string',
@@ -44,31 +43,36 @@ class ListProgramPenyalurans extends ListRecords
                 ])
                 ->mutateAfterValidationUsing(function (array $data): array {
                     // Resolve sumber dana
-                    $sumberDana = SumberDanaPenyaluran::where('nama_sumber_dana', 'LIKE', '%' . trim($data['sumber_dana']) . '%')->first();
-                    if (!$sumberDana) {
+                    $sumberDana = SumberDanaPenyaluran::where('nama_sumber_dana', 'LIKE', '%'.trim($data['sumber_dana']).'%')->first();
+                    if (! $sumberDana) {
                         throw new \Exception("Sumber dana '{$data['sumber_dana']}' tidak ditemukan");
                     }
                     $data['sumber_dana_penyaluran_id'] = $sumberDana->id;
                     unset($data['sumber_dana']);
 
+                    // Import tidak melewati guard saldo halaman create — cek
+                    // saldo di sini agar baris import tidak membuat saldo negatif.
+                    app(\App\Services\DanaService::class)
+                        ->assertCukupSaldo($data['sumber_dana_penyaluran_id'], (float) $data['jumlah_dana']);
+
                     // Resolve bidang program
-                    $bidangProgram = BidangProgram::where('nama_bidang', 'LIKE', '%' . trim($data['bidang_program']) . '%')->first();
-                    if (!$bidangProgram) {
+                    $bidangProgram = BidangProgram::where('nama_bidang', 'LIKE', '%'.trim($data['bidang_program']).'%')->first();
+                    if (! $bidangProgram) {
                         throw new \Exception("Bidang program '{$data['bidang_program']}' tidak ditemukan");
                     }
                     $data['bidang_program_id'] = $bidangProgram->id;
                     unset($data['bidang_program']);
 
                     // Resolve asnaf jika ada
-                    if (!empty($data['asnaf'])) {
-                        $asnaf = Asnaf::where('nama_asnaf', 'LIKE', '%' . trim($data['asnaf']) . '%')->first();
+                    if (! empty($data['asnaf'])) {
+                        $asnaf = Asnaf::where('nama_asnaf', 'LIKE', '%'.trim($data['asnaf']).'%')->first();
                         $data['asnaf_id'] = $asnaf?->id;
                     }
                     unset($data['asnaf']);
 
                     // Resolve jenis donasi jika ada
-                    if (!empty($data['jenis_donasi'])) {
-                        $jenisDonasi = JenisDonasi::where('nama', 'LIKE', '%' . trim($data['jenis_donasi']) . '%')
+                    if (! empty($data['jenis_donasi'])) {
+                        $jenisDonasi = JenisDonasi::where('nama', 'LIKE', '%'.trim($data['jenis_donasi']).'%')
                             ->where('aktif', true)->first();
                         $data['jenis_donasi_id'] = $jenisDonasi?->id;
                     }
@@ -133,7 +137,7 @@ class ListProgramPenyalurans extends ListRecords
                     ],
                     fileName: 'template_import_program_penyaluran.xlsx',
                     sampleButtonLabel: 'Download Template',
-                    customiseActionUsing: fn(Action $action) => $action
+                    customiseActionUsing: fn (Action $action) => $action
                         ->color('gray')
                         ->icon('heroicon-o-document-arrow-down'),
                 ),
@@ -152,17 +156,19 @@ class ListProgramPenyalurans extends ListRecords
         // 1. Handle DateTimeInterface (DateTime, DateTimeImmutable, Carbon)
         if ($tanggal instanceof \DateTimeInterface) {
             $result = Carbon::instance($tanggal)->toDateString();
+
             return $result;
         }
 
         // 2. Handle Excel serial date number
-        if (is_numeric($tanggal) && !is_string($tanggal)) {
+        if (is_numeric($tanggal) && ! is_string($tanggal)) {
             $numValue = (float) $tanggal;
             if ($numValue > 1 && $numValue < 100000) {
                 try {
                     // Gunakan PhpSpreadsheet untuk konversi yang akurat
                     $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($numValue);
                     $result = Carbon::instance($dateTime)->toDateString();
+
                     return $result;
                 } catch (\Exception $e) {
                     \Log::warning('parseTanggal: Excel serial failed', ['error' => $e->getMessage()]);
@@ -172,11 +178,10 @@ class ListProgramPenyalurans extends ListRecords
 
         // 3. Handle string - bersihkan dan parse
         $tanggalStr = trim((string) $tanggal);
-        
+
         // Hapus karakter non-printable/invisible
         $tanggalStr = preg_replace('/[^\d\/\-\.\s]/', '', $tanggalStr);
         $tanggalStr = trim($tanggalStr);
-        
 
         // Pattern: YYYY-MM-DD (ISO format - paling aman)
         if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $tanggalStr, $m)) {
@@ -185,6 +190,7 @@ class ListProgramPenyalurans extends ListRecords
             $day = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -196,6 +202,7 @@ class ListProgramPenyalurans extends ListRecords
             $year = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -207,6 +214,7 @@ class ListProgramPenyalurans extends ListRecords
             $year = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -218,6 +226,7 @@ class ListProgramPenyalurans extends ListRecords
             $year = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -227,6 +236,7 @@ class ListProgramPenyalurans extends ListRecords
             $date = Carbon::parse($tanggalStr);
             if ($date->year >= 2020 && $date->year <= 2035) {
                 $result = $date->toDateString();
+
                 return $result;
             }
         } catch (\Exception $e) {
@@ -236,6 +246,7 @@ class ListProgramPenyalurans extends ListRecords
         // Fallback ke hari ini
         $result = now()->toDateString();
         \Log::warning('parseTanggal: FALLBACK to today', ['original' => $tanggal, 'result' => $result]);
+
         return $result;
     }
 
@@ -244,13 +255,13 @@ class ListProgramPenyalurans extends ListRecords
         $date = Carbon::parse($tanggal);
         $prefix = 'PP';
         $yearMonth = $date->format('ym');
-        $uniqueId = substr((string)(microtime(true) * 10000), -6);
-        $kode = $prefix . $yearMonth . $uniqueId;
+        $uniqueId = substr((string) (microtime(true) * 10000), -6);
+        $kode = $prefix.$yearMonth.$uniqueId;
 
         $attempts = 0;
         while (ProgramPenyaluran::where('kode_program_penyaluran', $kode)->exists() && $attempts < 10) {
             $uniqueId = mt_rand(100000, 999999);
-            $kode = $prefix . $yearMonth . $uniqueId;
+            $kode = $prefix.$yearMonth.$uniqueId;
             $attempts++;
         }
 

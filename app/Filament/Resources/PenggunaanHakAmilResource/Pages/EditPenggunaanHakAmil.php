@@ -6,6 +6,7 @@ use App\Filament\Resources\PenggunaanHakAmilResource;
 use App\Services\DanaService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Validation\ValidationException;
 
 class EditPenggunaanHakAmil extends EditRecord
 {
@@ -24,8 +25,12 @@ class EditPenggunaanHakAmil extends EditRecord
     protected function beforeSave(): void
     {
         $jumlah = floatval($this->data['jumlah'] ?? 0);
-        if ($jumlah > 0) {
-            app(DanaService::class)->assertCukupHakAmil($jumlah, $this->record?->id);
+        if ($jumlah <= 0) {
+            throw ValidationException::withMessages([
+                'jumlah' => 'Jumlah penggunaan hak amil harus lebih dari 0.',
+            ]);
         }
+
+        app(DanaService::class)->assertCukupHakAmil($jumlah, $this->record?->id);
     }
 }

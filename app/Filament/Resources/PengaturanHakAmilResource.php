@@ -9,23 +9,26 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class PengaturanHakAmilResource extends Resource
 {
     protected static ?string $model = SumberDanaPenyaluran::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static ?string $navigationGroup = 'Administrator';
+
     protected static ?string $modelLabel = 'Pengaturan Hak Amil';
+
     protected static ?string $pluralModelLabel = 'Pengaturan Hak Amil';
+
     protected static ?int $navigationSort = 1;
-    
+
     public static function getSlug(): string
     {
         return 'pengaturan-amil';
     }
-    
+
     public static function form(Form $form): Form
     {
         return $form
@@ -39,24 +42,26 @@ class PengaturanHakAmilResource extends Resource
                             ->label('Nama Sumber Dana')
                             ->disabled()
                             ->helperText('Nama sumber dana penyaluran'),
-                            
+
                         Forms\Components\TextInput::make('persentase_hak_amil')
                             ->required()
                             ->numeric()
                             ->minValue(0)
-                            ->maxValue(100)
+                            // PSAK 109: bagian amil maksimal 1/8 (12,5%) dari
+                            // dana yang dihimpun.
+                            ->maxValue(12.5)
                             ->step(0.1)
                             ->suffix('%')
                             ->default(12)
                             ->label('Persentase Hak Amil')
-                            ->helperText('Masukkan persentase hak amil (0-100%). Default: 12%'),
-                            
+                            ->helperText('Masukkan persentase hak amil (0-12,5%). Maksimal 1/8 (12,5%) sesuai PSAK 109. Default: 12%'),
+
                         Forms\Components\Textarea::make('deskripsi')
                             ->maxLength(500)
                             ->label('Deskripsi')
                             ->disabled()
                             ->placeholder('Deskripsi sumber dana'),
-                            
+
                         Forms\Components\Toggle::make('aktif')
                             ->default(true)
                             ->label('Status Aktif')
@@ -74,7 +79,7 @@ class PengaturanHakAmilResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->label('Nama Sumber Dana'),
-                    
+
                 Tables\Columns\TextColumn::make('persentase_hak_amil')
                     ->suffix('%')
                     ->sortable()
@@ -82,18 +87,18 @@ class PengaturanHakAmilResource extends Resource
                     ->alignCenter()
                     ->formatStateUsing(fn ($state) => number_format($state, 1))
                     ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
-                    
+
                 Tables\Columns\TextColumn::make('deskripsi')
                     ->limit(50)
                     ->label('Deskripsi')
                     ->placeholder('-')
                     ->toggleable(),
-                    
+
                 Tables\Columns\IconColumn::make('aktif')
                     ->boolean()
                     ->sortable()
                     ->label('Status'),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('d M Y H:i')
                     ->sortable()

@@ -8,6 +8,7 @@ use App\Services\DanaService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class EditProgramPenyaluran extends EditRecord
 {
@@ -20,7 +21,7 @@ class EditProgramPenyaluran extends EditRecord
         ];
     }
 
-     protected function getRedirectUrl(): string
+    protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
@@ -34,7 +35,13 @@ class EditProgramPenyaluran extends EditRecord
         $sumberDanaId = $this->data['sumber_dana_penyaluran_id'] ?? null;
         $jumlah = floatval($this->data['jumlah_dana'] ?? 0);
 
-        if (! $sumberDanaId || $jumlah <= 0) {
+        if ($jumlah <= 0) {
+            throw ValidationException::withMessages([
+                'jumlah_dana' => 'Jumlah dana penyaluran harus lebih dari 0.',
+            ]);
+        }
+
+        if (! $sumberDanaId) {
             return;
         }
 
