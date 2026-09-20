@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Donasi;
+use App\Models\ProgramPenyaluran;
 use App\Services\PdfService;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -35,30 +36,43 @@ Route::get('/invoice/download/{donasi}', function (Donasi $donasi) {
 
     try {
         $pdfService = app(PdfService::class);
+
         return $pdfService->streamInvoicePDF($donasi);
 
     } catch (\Exception $e) {
         \Illuminate\Support\Facades\Log::error('Invoice download failed', [
             'donasi_id' => $donasi->id,
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
         ]);
         abort(500, 'Gagal menggenerate invoice PDF');
     }
 })->middleware(['auth', 'can:view,donasi'])->name('invoice.download');
 
-
-// Serve file lain dari disk private (bukti pembayaran/penyaluran) — hanya untuk user login
+// Serve file bukti dari disk private dengan otorisasi per-record: bukti
+// pembayaran milik donasi, bukti penyaluran milik program penyaluran.
+// Tanpa otorisasi ini seluruh dokumen finansial bisa diunduh user login
+// mana pun (IDOR).
 Route::get('/private-file/{path}', function (string $path) {
     // Sanitasi: buang traversal & karakter berbahaya
     $path = str_replace(['..', "\0", '\\'], '', $path);
     $path = trim(preg_replace('#/+#', '/', $path), '/');
 
-    $allowedPrefixes = ['bukti-pembayaran/', 'bukti-penyaluran/'];
-
-    foreach ($allowedPrefixes as $prefix) {
-        if (str_starts_with($path, $prefix) && Storage::disk('private')->exists($path)) {
-            return Storage::disk('private')->response($path);
+    if (str_starts_with($path, 'bukti-pembayaran/')) {
+        $donasi = Donasi::where('bukti_pembayaran', $path)->first();
+        if (! $donasi || ! auth()->user()->can('view', $donasi)) {
+            abort(404);
         }
+
+        return Storage::disk('private')->response($path);
+    }
+
+    if (str_starts_with($path, 'bukti-penyaluran/')) {
+        $penyaluran = ProgramPenyaluran::withTrashed()->where('bukti_penyaluran', $path)->first();
+        if (! $penyaluran || ! auth()->user()->can('view', $penyaluran)) {
+            abort(404);
+        }
+
+        return Storage::disk('private')->response($path);
     }
 
     abort(404);
