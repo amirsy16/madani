@@ -19,11 +19,14 @@ abstract class TestCase extends BaseTestCase
      *   yang hanya valid di MySQL.
      * - 2025_06_18_000002 : memanggil `$table->check(...)` — method
      *   `Blueprint::check()` tidak tersedia di Laravel 11 project ini.
+     * - 2025_05_15_134000 : menambahkan foreign key via Schema::table —
+     *   driver SQLite tidak mendukung ALTER TABLE ADD CONSTRAINT FK.
      * - 2026_09_13_000002 : drop foreign key by name tidak didukung driver SQLite.
      */
     protected array $skippedMigrations = [
         '2025_06_09_232411_add_sub_kategori_dana_non_halal_to_donasis_table.php',
         '2025_06_15_113749_add_organization_to_donaturs_gender_enum.php',
+        '2025_05_15_134000_add_foreign_keys_to_donasis_table.php',
         '2025_06_18_000002_add_persentase_to_jenis_penggunaan_hak_amils_table.php',
         '2026_09_13_000002_drop_donaturs_city_foreign_key.php',
     ];
