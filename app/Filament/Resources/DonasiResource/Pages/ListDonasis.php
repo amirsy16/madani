@@ -5,15 +5,15 @@ namespace App\Filament\Resources\DonasiResource\Pages;
 use App\Filament\Resources\DonasiResource;
 use App\Models\Donasi;
 use App\Models\Donatur;
+use App\Models\Fundraiser;
 use App\Models\JenisDonasi;
 use App\Models\MetodePembayaran;
-use App\Models\Fundraiser;
+use Carbon\Carbon;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class ListDonasis extends ListRecords
 {
@@ -43,32 +43,32 @@ class ListDonasis extends ListRecords
                 ->mutateAfterValidationUsing(function (array $data): array {
                     // Resolve donatur (wajib)
                     $donatur = Donatur::where('kode_donatur', trim($data['kode_donatur']))->first();
-                    if (!$donatur) {
+                    if (! $donatur) {
                         throw new \Exception("Donatur dengan kode '{$data['kode_donatur']}' tidak ditemukan");
                     }
                     $data['donatur_id'] = $donatur->id;
                     unset($data['kode_donatur']);
 
                     // Resolve jenis donasi (wajib)
-                    $jenisDonasi = JenisDonasi::where('nama', 'LIKE', '%' . trim($data['jenis_donasi']) . '%')
+                    $jenisDonasi = JenisDonasi::where('nama', 'LIKE', '%'.trim($data['jenis_donasi']).'%')
                         ->where('aktif', true)->first();
-                    if (!$jenisDonasi) {
+                    if (! $jenisDonasi) {
                         throw new \Exception("Jenis donasi '{$data['jenis_donasi']}' tidak ditemukan");
                     }
                     $data['jenis_donasi_id'] = $jenisDonasi->id;
                     unset($data['jenis_donasi']);
 
                     // Resolve metode pembayaran (optional)
-                    if (!empty($data['metode_pembayaran'])) {
-                        $metode = MetodePembayaran::where('nama', 'LIKE', '%' . trim($data['metode_pembayaran']) . '%')
+                    if (! empty($data['metode_pembayaran'])) {
+                        $metode = MetodePembayaran::where('nama', 'LIKE', '%'.trim($data['metode_pembayaran']).'%')
                             ->where('aktif', true)->first();
                         $data['metode_pembayaran_id'] = $metode?->id;
                     }
                     unset($data['metode_pembayaran']);
 
                     // Resolve fundraiser (optional)
-                    if (!empty($data['fundraiser'])) {
-                        $fundraiser = Fundraiser::where('nama_fundraiser', 'LIKE', '%' . trim($data['fundraiser']) . '%')
+                    if (! empty($data['fundraiser'])) {
+                        $fundraiser = Fundraiser::where('nama_fundraiser', 'LIKE', '%'.trim($data['fundraiser']).'%')
                             ->where('aktif', true)->first();
                         $data['fundraiser_id'] = $fundraiser?->id;
                     }
@@ -81,10 +81,22 @@ class ListDonasis extends ListRecords
                     $data['atas_nama_hamba_allah'] = $this->parseBoolean($data['atas_nama_hamba_allah'] ?? false);
 
                     // Set default jumlah to 0 if empty (untuk donasi barang)
-                    $data['jumlah'] = !empty($data['jumlah']) ? (float) $data['jumlah'] : 0;
-                    
+                    $data['jumlah'] = ! empty($data['jumlah']) ? (float) $data['jumlah'] : 0;
+
                     // Set default perkiraan_nilai_barang to 0 if empty
-                    $data['perkiraan_nilai_barang'] = !empty($data['perkiraan_nilai_barang']) ? (float) $data['perkiraan_nilai_barang'] : null;
+                    $data['perkiraan_nilai_barang'] = ! empty($data['perkiraan_nilai_barang']) ? (float) $data['perkiraan_nilai_barang'] : null;
+
+                    // Donasi uang wajib bernilai minimal Rp 1 (paritas dengan
+                    // validasi form); donasi barang dinilai dari perkiraan_nilai_barang.
+                    if (! $jenisDonasi->apakah_barang && $data['jumlah'] < 1) {
+                        throw new \Exception("Jumlah donasi minimal Rp 1 untuk jenis donasi uang (kode donatur '{$donatur->kode_donatur}')");
+                    }
+
+                    // Donasi anonim tidak boleh tetap terhubung ke donatur —
+                    // selaras dengan perilaku form create.
+                    if ($data['atas_nama_hamba_allah']) {
+                        $data['donatur_id'] = null;
+                    }
 
                     // Generate nomor transaksi
                     $data['nomor_transaksi_unik'] = $this->generateNomorTransaksi();
@@ -139,7 +151,7 @@ class ListDonasis extends ListRecords
                     ],
                     fileName: 'template_import_donasi.xlsx',
                     sampleButtonLabel: 'Download Template',
-                    customiseActionUsing: fn(Action $action) => $action
+                    customiseActionUsing: fn (Action $action) => $action
                         ->color('gray')
                         ->icon('heroicon-o-document-arrow-down'),
                 ),
@@ -165,17 +177,19 @@ class ListDonasis extends ListRecords
         // 1. Handle DateTimeInterface (DateTime, DateTimeImmutable, Carbon)
         if ($tanggal instanceof \DateTimeInterface) {
             $result = Carbon::instance($tanggal)->toDateString();
+
             return $result;
         }
 
         // 2. Handle Excel serial date number
-        if (is_numeric($tanggal) && !is_string($tanggal)) {
+        if (is_numeric($tanggal) && ! is_string($tanggal)) {
             $numValue = (float) $tanggal;
             if ($numValue > 1 && $numValue < 100000) {
                 try {
                     // Gunakan PhpSpreadsheet untuk konversi yang akurat
                     $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($numValue);
                     $result = Carbon::instance($dateTime)->toDateString();
+
                     return $result;
                 } catch (\Exception $e) {
                     \Log::warning('parseTanggal: Excel serial failed', ['error' => $e->getMessage()]);
@@ -185,11 +199,10 @@ class ListDonasis extends ListRecords
 
         // 3. Handle string - bersihkan dan parse
         $tanggalStr = trim((string) $tanggal);
-        
+
         // Hapus karakter non-printable/invisible
         $tanggalStr = preg_replace('/[^\d\/\-\.\s]/', '', $tanggalStr);
         $tanggalStr = trim($tanggalStr);
-        
 
         // Pattern: YYYY-MM-DD (ISO format - paling aman)
         if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $tanggalStr, $m)) {
@@ -198,6 +211,7 @@ class ListDonasis extends ListRecords
             $day = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -209,6 +223,7 @@ class ListDonasis extends ListRecords
             $year = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -220,6 +235,7 @@ class ListDonasis extends ListRecords
             $year = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -231,6 +247,7 @@ class ListDonasis extends ListRecords
             $year = (int) $m[3];
             if (checkdate($month, $day, $year)) {
                 $result = sprintf('%04d-%02d-%02d', $year, $month, $day);
+
                 return $result;
             }
         }
@@ -240,6 +257,7 @@ class ListDonasis extends ListRecords
             $date = Carbon::parse($tanggalStr);
             if ($date->year >= 2020 && $date->year <= 2035) {
                 $result = $date->toDateString();
+
                 return $result;
             }
         } catch (\Exception $e) {
@@ -249,14 +267,20 @@ class ListDonasis extends ListRecords
         // Fallback ke hari ini
         $result = now()->toDateString();
         \Log::warning('parseTanggal: FALLBACK to today', ['original' => $tanggal, 'result' => $result]);
+
         return $result;
     }
 
     private function parseBoolean($value): bool
     {
-        if (is_bool($value)) return $value;
-        if (is_numeric($value)) return (bool) $value;
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_numeric($value)) {
+            return (bool) $value;
+        }
         $value = strtolower(trim((string) $value));
+
         return in_array($value, ['true', 'yes', 'ya', '1', 'y']);
     }
 
@@ -264,17 +288,16 @@ class ListDonasis extends ListRecords
     {
         $prefix = 'TRX';
         $date = now()->format('ymd');
-        $uniqueId = substr((string)(microtime(true) * 10000), -6);
-        $nomor = $prefix . $date . $uniqueId;
+        $uniqueId = substr((string) (microtime(true) * 10000), -6);
+        $nomor = $prefix.$date.$uniqueId;
 
         $attempts = 0;
         while (Donasi::where('nomor_transaksi_unik', $nomor)->exists() && $attempts < 10) {
             $uniqueId = mt_rand(100000, 999999);
-            $nomor = $prefix . $date . $uniqueId;
+            $nomor = $prefix.$date.$uniqueId;
             $attempts++;
         }
 
         return $nomor;
     }
 }
-

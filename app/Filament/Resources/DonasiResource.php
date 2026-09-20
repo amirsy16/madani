@@ -200,6 +200,9 @@ class DonasiResource extends Resource
                         ->preload()// Placeholder changed to match DonaturResource
                         ->required()
                         ->label('Jenis Donasi')
+                        // Donasi terverifikasi dikunci: mengubah jenis memindahkan
+                        // dana antar-kategori laporan.
+                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->live()
                         ->afterStateUpdated(function (callable $set, $state) {
                             $set('keterangan_infak_khusus', null);
@@ -216,6 +219,8 @@ class DonasiResource extends Resource
                         ->default(now())
                         ->required()
                         ->label('Tanggal Donasi')
+                        // Tanggal menentukan periode laporan — dikunci saat verified.
+                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->maxDate(now())
                         ->displayFormat('d M Y'),
                 ]),
@@ -230,6 +235,8 @@ class DonasiResource extends Resource
                         ->label('Jumlah Donasi (Uang)')
                         ->helperText('Masukkan jumlah donasi dalam Rupiah')
                         ->prefix('Rp')
+                        // Nominal menentukan saldo & laporan — dikunci saat verified.
+                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         // ->placeholder('100.000')
                         ->extraInputAttributes([
                             'x-data' => '{
@@ -252,7 +259,17 @@ class DonasiResource extends Resource
 
                             return ! ($jenisDonasi && $jenisDonasi->apakah_barang); // Wajib jika bukan barang
                         })
-                        ->dehydrateStateUsing(fn ($state) => $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
+                        // Validasi nominal: tolak 0 dan negatif dengan pesan
+                        // validasi. Sebelumnya 0 lolos required lalu menjadi
+                        // null saat dehydrasi (error 500), dan -1 lolos karena
+                        // formatter client-side hanya mengubah tampilan.
+                        ->numeric()
+                        ->minValue(1)
+                        ->validationMessages([
+                            'numeric' => 'Nominal donasi harus berupa angka.',
+                            'min' => 'Nominal donasi minimal Rp 1.',
+                        ])
+                        ->dehydrateStateUsing(fn ($state) => filled($state) ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                         )
                         ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null
                         )
@@ -329,6 +346,8 @@ class DonasiResource extends Resource
                         ->helperText('Estimasi nilai barang dalam Rupiah')
                         ->prefix('Rp')
                         ->placeholder('70.000')
+                        // Nilai barang menentukan saldo & laporan — dikunci saat verified.
+                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->extraInputAttributes([
                             'x-data' => '{
                                 formatNumber(value) {
@@ -340,6 +359,12 @@ class DonasiResource extends Resource
                             }',
                             'x-on:input' => '$event.target.value = formatNumber($event.target.value)',
                             'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)',
+                        ])
+                        ->numeric()
+                        ->minValue(0)
+                        ->validationMessages([
+                            'numeric' => 'Perkiraan nilai barang harus berupa angka.',
+                            'min' => 'Perkiraan nilai barang tidak boleh negatif.',
                         ])
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
@@ -412,6 +437,9 @@ class DonasiResource extends Resource
                         ])
                         ->default('pending')
                         ->required()
+                        // Status terverifikasi adalah keadaan final: tidak boleh
+                        // diputar balik lewat form (state machine pending → verified/rejected).
+                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->live()
                         ->afterStateUpdated(function (callable $set, $state) {
                             if ($state !== 'pending') {
@@ -860,11 +888,27 @@ class DonasiResource extends Resource
                     ->openUrlInNewTab()
                     ->requiresConfirmation(false),
 
-                Tables\Actions\DeleteAction::make(),
+                // Donasi terverifikasi tidak boleh dihapus — dananya mungkin
+                // sudah menjadi dasar penyaluran/hak amil.
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (Donasi $record) => $record->status_konfirmasi !== 'verified'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (\Illuminate\Support\Collection $records, Tables\Actions\DeleteBulkAction $action): void {
+                            $terverifikasi = $records->filter(fn (Donasi $record) => $record->status_konfirmasi === 'verified')->count();
+
+                            if ($terverifikasi > 0) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Hapus massal dibatalkan')
+                                    ->body($terverifikasi.' donasi terverifikasi tidak boleh dihapus. Batalkan verifikasinya terlebih dahulu bila memang keliru.')
+                                    ->danger()
+                                    ->send();
+
+                                $action->halt();
+                            }
+                        }),
                     ExportBulkAction::make(),
                     // ... any other existing bulk actions ...
                 ]),
