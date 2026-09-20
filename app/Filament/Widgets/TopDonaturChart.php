@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Donatur;
+use App\Models\JenisDonasi;
 use App\Services\StatsCache;
 use Carbon\Carbon;
 use Filament\Support\RawJs;
@@ -18,7 +19,7 @@ class TopDonaturChart extends ApexChartWidget
 
     protected static ?int $sort = 3;
 
-    protected int | string | array $columnSpan = 1;
+    protected int|string|array $columnSpan = 1;
 
     protected static ?int $contentHeight = 220;
 
@@ -26,9 +27,9 @@ class TopDonaturChart extends ApexChartWidget
 
     public ?string $filter = 'bulan_ini';
 
-    public function getSubheading(): string | Htmlable | null
+    public function getSubheading(): string|Htmlable|null
     {
-        return 'Total donasi terverifikasi per donatur — ' . $this->labelPeriode();
+        return 'Total donasi terverifikasi per donatur — '.$this->labelPeriode();
     }
 
     protected function getFilters(): ?array
@@ -64,7 +65,7 @@ class TopDonaturChart extends ApexChartWidget
     protected function getOptions(): array
     {
         $rows = StatsCache::remember(
-            'top_donatur_' . ($this->filter ?? 'bulan_ini'),
+            'top_donatur_'.($this->filter ?? 'bulan_ini'),
             fn () => $this->computeRows()
         );
 
@@ -110,7 +111,10 @@ class TopDonaturChart extends ApexChartWidget
                 DB::raw('SUM(donasis.jumlah + IFNULL(donasis.perkiraan_nilai_barang, 0)) as total_donasi'),
             ])
             ->join('donasis', 'donaturs.id', '=', 'donasis.donatur_id')
-            ->where('donasis.status_konfirmasi', 'verified');
+            ->where('donasis.status_konfirmasi', 'verified')
+            // Paritas dengan kartu statistik: Penyaluran Langsung tidak masuk
+            // kas organisasi.
+            ->whereNotIn('donasis.jenis_donasi_id', JenisDonasi::query()->where('nama', 'Penyaluran Langsung')->select('id'));
 
         if ($start && $end) {
             $query->whereBetween('donasis.tanggal_donasi', [$start->toDateString(), $end->toDateString()]);

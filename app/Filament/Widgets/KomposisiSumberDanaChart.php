@@ -18,7 +18,7 @@ class KomposisiSumberDanaChart extends ApexChartWidget
 
     protected static ?int $sort = 8;
 
-    protected int | string | array $columnSpan = 1;
+    protected int|string|array $columnSpan = 1;
 
     protected static ?int $contentHeight = 220;
 
@@ -32,9 +32,9 @@ class KomposisiSumberDanaChart extends ApexChartWidget
         '#EF4444', '#8B5CF6', '#14B8A6', '#64748B',
     ];
 
-    public function getSubheading(): string | Htmlable | null
+    public function getSubheading(): string|Htmlable|null
     {
-        return 'Total donasi terverifikasi per sumber dana — ' . $this->labelPeriode();
+        return 'Total donasi terverifikasi per sumber dana — '.$this->labelPeriode();
     }
 
     protected function getFilters(): ?array
@@ -70,7 +70,7 @@ class KomposisiSumberDanaChart extends ApexChartWidget
     protected function getOptions(): array
     {
         $rows = StatsCache::remember(
-            'komposisi_sumber_dana_' . ($this->filter ?? 'tahun_ini'),
+            'komposisi_sumber_dana_'.($this->filter ?? 'tahun_ini'),
             fn () => $this->computeRows()
         );
 
@@ -108,6 +108,9 @@ class KomposisiSumberDanaChart extends ApexChartWidget
 
         return $query
             ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
+            // Paritas dengan kartu statistik: Penyaluran Langsung tidak masuk
+            // kas organisasi.
+            ->where('jenis_donasis.nama', '!=', 'Penyaluran Langsung')
             ->leftJoin('sumber_dana_penyalurans', 'jenis_donasis.sumber_dana_penyaluran_id', '=', 'sumber_dana_penyalurans.id')
             ->select(
                 DB::raw('COALESCE(sumber_dana_penyalurans.nama_sumber_dana, "Tanpa Sumber Dana") as sumber'),

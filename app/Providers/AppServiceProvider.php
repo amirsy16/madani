@@ -2,19 +2,16 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL;
-use Filament\Support\Assets\Js;
-use Filament\Support\Assets\Css;
-use Filament\Support\Facades\FilamentAsset;
-use Illuminate\Support\Facades\Vite;
-use Filament\Tables\Table;
 use App\Models\Donasi;
-use App\Models\ProgramPenyaluran;
-use App\Models\PenggunaanHakAmil;
+use App\Models\Donatur;
 use App\Models\JenisDonasi;
+use App\Models\PenggunaanHakAmil;
+use App\Models\ProgramPenyaluran;
 use App\Models\SumberDanaPenyaluran;
 use App\Observers\InvalidatesStatsCache;
+use Filament\Tables\Table;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,13 +34,13 @@ class AppServiceProvider extends ServiceProvider
                 ->defaultPaginationPageOption(25);
         });
 
-        foreach ([Donasi::class, ProgramPenyaluran::class, PenggunaanHakAmil::class, JenisDonasi::class, SumberDanaPenyaluran::class] as $model) {
+        foreach ([Donasi::class, Donatur::class, ProgramPenyaluran::class, PenggunaanHakAmil::class, JenisDonasi::class, SumberDanaPenyaluran::class] as $model) {
             $model::observe(InvalidatesStatsCache::class);
         }
         // if(config('app.env') === 'local')
         // {
         //     URL::forceScheme('https');
-            
+
         //     // Handle ngrok URLs dynamically
         //     if (request()->hasHeader('x-forwarded-host')) {
         //         $host = request()->header('x-forwarded-host');
@@ -51,6 +48,5 @@ class AppServiceProvider extends ServiceProvider
         //     }
         // }
 
-        
     }
 }

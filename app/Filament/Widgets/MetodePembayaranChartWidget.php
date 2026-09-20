@@ -18,7 +18,7 @@ class MetodePembayaranChartWidget extends ApexChartWidget
 
     protected static ?int $sort = 5;
 
-    protected int | string | array $columnSpan = 1;
+    protected int|string|array $columnSpan = 1;
 
     protected static ?int $contentHeight = 220;
 
@@ -26,9 +26,9 @@ class MetodePembayaranChartWidget extends ApexChartWidget
 
     public ?string $filter = 'tahun_ini';
 
-    public function getSubheading(): string | Htmlable | null
+    public function getSubheading(): string|Htmlable|null
     {
-        return 'Total donasi terverifikasi per metode pembayaran — ' . $this->labelPeriode();
+        return 'Total donasi terverifikasi per metode pembayaran — '.$this->labelPeriode();
     }
 
     protected function getFilters(): ?array
@@ -64,7 +64,7 @@ class MetodePembayaranChartWidget extends ApexChartWidget
     protected function getOptions(): array
     {
         $rows = StatsCache::remember(
-            'donasi_metode_pembayaran_' . ($this->filter ?? 'tahun_ini'),
+            'donasi_metode_pembayaran_'.($this->filter ?? 'tahun_ini'),
             fn () => $this->computeRows()
         );
 
@@ -101,7 +101,10 @@ class MetodePembayaranChartWidget extends ApexChartWidget
     {
         [$start, $end] = $this->rentangPeriode();
 
-        $query = Donasi::where('donasis.status_konfirmasi', 'verified');
+        $query = Donasi::where('donasis.status_konfirmasi', 'verified')
+            // Paritas dengan kartu statistik: Penyaluran Langsung tidak masuk
+            // kas organisasi.
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'));
 
         if ($start && $end) {
             $query->whereBetween('donasis.tanggal_donasi', [$start->toDateString(), $end->toDateString()]);

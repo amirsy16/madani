@@ -302,16 +302,16 @@ class RingkasanStatistikUtama extends Widget
 
     private function mapDetailDonasiRow(Donasi $d, bool $barang): array
     {
+        // Anonimisasi berlaku untuk SEMUA jenis donasi bertanda hamba Allah
+        // (paritas dengan tampilan tabel Donasi) — bukan hanya jenis barang.
+        $anonim = (bool) $d->atas_nama_hamba_allah;
+
         $row = [
             'id' => $d->id,
             'tanggal' => $d->tanggal_donasi,
             'kode' => $d->nomor_transaksi_unik ?? 'N/A',
-            'donatur_nama' => $barang && $d->atas_nama_hamba_allah
-                ? 'Hamba Allah'
-                : ($d->donatur->nama ?? 'Anonim'),
-            'donatur_hp' => $barang && $d->atas_nama_hamba_allah
-                ? null
-                : ($d->donatur->nomor_hp ?? null),
+            'donatur_nama' => $anonim ? 'Hamba Allah' : ($d->donatur->nama ?? 'Anonim'),
+            'donatur_hp' => $anonim ? null : ($d->donatur->nomor_hp ?? null),
             'jenis_donasi' => $d->jenisDonasi->nama ?? 'N/A',
             'metode_pembayaran' => $d->metodePembayaran->nama ?? 'N/A',
         ];
@@ -387,7 +387,11 @@ class RingkasanStatistikUtama extends Widget
 
     protected function getStats(): array
     {
-        $cacheKey = 'ringkasan:'.($this->currentPeriod ?? 'keseluruhan')
+        // Sertakan bulan berjalan pada key: untuk filter "bulan ini" key
+        // lama identik antar-bulan sehingga angka basi tampil setelah
+        // pergantian bulan (dalam TTL) — paritas dengan ZakatStatsOverview.
+        $cacheKey = 'ringkasan:'.now()->format('Y-m')
+            .':'.($this->currentPeriod ?? 'keseluruhan')
             .':'.($this->startDate ?? '-')
             .':'.($this->endDate ?? '-');
 

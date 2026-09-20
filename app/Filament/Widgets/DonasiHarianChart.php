@@ -18,7 +18,7 @@ class DonasiHarianChart extends ApexChartWidget
 
     protected static ?int $sort = 9;
 
-    protected int | string | array $columnSpan = 1;
+    protected int|string|array $columnSpan = 1;
 
     protected static ?int $contentHeight = 220;
 
@@ -26,13 +26,13 @@ class DonasiHarianChart extends ApexChartWidget
 
     public ?string $filter = 'bulan_ini';
 
-    public function getSubheading(): string | Htmlable | null
+    public function getSubheading(): string|Htmlable|null
     {
         $bulan = ($this->filter ?? 'bulan_ini') === 'bulan_lalu'
             ? Carbon::now()->subMonth()
             : Carbon::now();
 
-        return 'Total donasi terverifikasi per tanggal — ' . $bulan->translatedFormat('F Y');
+        return 'Total donasi terverifikasi per tanggal — '.$bulan->translatedFormat('F Y');
     }
 
     protected function getFilters(): ?array
@@ -53,12 +53,15 @@ class DonasiHarianChart extends ApexChartWidget
         $data = [];
 
         $totals = StatsCache::remember(
-            'donasi_harian_' . ($this->filter ?? 'bulan_ini'),
+            'donasi_harian_'.($this->filter ?? 'bulan_ini'),
             function () use ($bulan) {
                 $start = $bulan->copy()->startOfMonth();
                 $end = $bulan->copy()->endOfMonth();
 
                 return Donasi::where('status_konfirmasi', 'verified')
+                    // Paritas dengan kartu statistik: Penyaluran Langsung
+                    // tidak masuk kas organisasi.
+                    ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
                     ->whereBetween('tanggal_donasi', [$start->toDateString(), $end->toDateString()])
                     ->select(
                         DB::raw('DATE_FORMAT(tanggal_donasi, "%Y-%m-%d") as tanggal'),

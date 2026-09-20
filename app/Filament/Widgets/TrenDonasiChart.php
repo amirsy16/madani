@@ -17,7 +17,7 @@ class TrenDonasiChart extends ApexChartWidget
 
     protected static ?int $sort = 2;
 
-    protected int | string | array $columnSpan = 1;
+    protected int|string|array $columnSpan = 1;
 
     protected static ?int $contentHeight = 220;
 
@@ -42,12 +42,15 @@ class TrenDonasiChart extends ApexChartWidget
         $data = [];
 
         $totals = StatsCache::remember(
-            'tren_donasi_' . ($this->filter ?? '6_bulan'),
+            'tren_donasi_'.($this->filter ?? '6_bulan'),
             function () use ($jumlahBulan) {
                 $start = Carbon::now()->subMonths($jumlahBulan - 1)->startOfMonth();
                 $end = Carbon::now()->endOfMonth();
 
                 return Donasi::where('status_konfirmasi', 'verified')
+                    // Paritas dengan kartu statistik: Penyaluran Langsung
+                    // tidak masuk kas organisasi.
+                    ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
                     ->whereBetween('tanggal_donasi', [$start->toDateString(), $end->toDateString()])
                     ->select(
                         DB::raw('DATE_FORMAT(tanggal_donasi, "%Y-%m") as bulan'),

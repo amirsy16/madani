@@ -10,29 +10,35 @@ use Illuminate\Support\Facades\DB;
 class MetodePembayaranChart extends Widget
 {
     protected static ?string $pollingInterval = null;
-    
+
     protected static string $view = 'filament.widgets.metode-pembayaran-chart';
-    
+
     protected static ?int $sort = 3;
 
-    protected int | string | array $columnSpan = 'full';
-    
+    protected int|string|array $columnSpan = 'full';
+
     public function getHeading(): ?string
     {
         return 'Analisis Metode Pembayaran';
     }
-    
+
     protected function getHeadingClass(): ?string
     {
         return 'text-center text-2xl font-bold';
     }
 
     public ?string $filter = 'bulan_ini';
+
     public ?string $selectedMetode = null;
+
     public array $metodePembayaranStats = [];
+
     public ?string $customStartDate = null;
+
     public ?string $customEndDate = null;
+
     public bool $showCustomDateRange = false;
+
     public bool $showInfoModal = false;
 
     protected static bool $isDiscovered = false;
@@ -150,6 +156,9 @@ class MetodePembayaranChart extends Widget
         $query = Donasi::query()
             ->join('metode_pembayarans', 'donasis.metode_pembayaran_id', '=', 'metode_pembayarans.id')
             ->where('donasis.status_konfirmasi', 'verified')
+            // Paritas dengan kartu statistik: Penyaluran Langsung tidak masuk
+            // kas organisasi.
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->select(
                 'metode_pembayarans.id as metode_id',
                 'metode_pembayarans.nama as nama_metode',
@@ -165,28 +174,29 @@ class MetodePembayaranChart extends Widget
             ->groupBy('metode_pembayarans.id', 'metode_pembayarans.nama')
             ->orderBy('total_nominal', 'desc')
             ->get()
-            ->map(function($item) use ($startDate, $endDate) {
+            ->map(function ($item) use ($startDate, $endDate) {
                 // Ambil top donatur untuk metode ini
                 $topDonatur = $this->getTopDonaturForMetode($item->metode_id, $startDate, $endDate);
-                
+
                 return [
                     'id' => $item->metode_id,
                     'nama' => $item->nama_metode,
                     'jumlah_transaksi' => (int) $item->jumlah_transaksi,
                     'total_nominal' => (float) $item->total_nominal,
                     'top_donatur' => $topDonatur,
-                    'formatted_total' => 'Rp ' . number_format($item->total_nominal, 0, ',', '.'),
+                    'formatted_total' => 'Rp '.number_format($item->total_nominal, 0, ',', '.'),
                 ];
             })
             ->toArray();
     }
-    
+
     protected function getTopDonaturForMetode(int $metodeId, $startDate = null, $endDate = null): array
     {
         $query = Donasi::query()
             ->join('donaturs', 'donasis.donatur_id', '=', 'donaturs.id')
             ->where('donasis.metode_pembayaran_id', $metodeId)
             ->where('donasis.status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->select(
                 'donaturs.id',
                 'donaturs.nama',
@@ -202,27 +212,27 @@ class MetodePembayaranChart extends Widget
             ->groupBy('donaturs.id', 'donaturs.nama')
             ->orderBy('total_donasi', 'desc')
             ->first();
-            
-        if (!$topDonatur) {
+
+        if (! $topDonatur) {
             return [
                 'nama' => '-',
                 'total' => 0,
                 'formatted_total' => '-',
-                'jumlah_donasi' => 0
+                'jumlah_donasi' => 0,
             ];
         }
 
         return [
             'nama' => $topDonatur->nama,
             'total' => (float) $topDonatur->total_donasi,
-            'formatted_total' => 'Rp ' . number_format($topDonatur->total_donasi, 0, ',', '.'),
-            'jumlah_donasi' => (int) $topDonatur->jumlah_donasi
+            'formatted_total' => 'Rp '.number_format($topDonatur->total_donasi, 0, ',', '.'),
+            'jumlah_donasi' => (int) $topDonatur->jumlah_donasi,
         ];
     }
 
     public function getDetailDonasi(?string $metode): array
     {
-        if (!$metode) {
+        if (! $metode) {
             return [];
         }
 
@@ -266,6 +276,7 @@ class MetodePembayaranChart extends Widget
             ->join('metode_pembayarans', 'donasis.metode_pembayaran_id', '=', 'metode_pembayarans.id')
             ->join('donaturs', 'donasis.donatur_id', '=', 'donaturs.id')
             ->where('donasis.status_konfirmasi', 'verified')
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->where('metode_pembayarans.nama', $metode)
             ->select(
                 'donaturs.nama as nama_donatur',
@@ -281,10 +292,10 @@ class MetodePembayaranChart extends Widget
             ->orderBy('donasis.tanggal_donasi', 'desc')
             ->limit(20)
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'donatur' => $item->nama_donatur,
                 'tanggal' => Carbon::parse($item->tanggal_donasi)->format('d M Y'),
-                'nominal' => 'Rp ' . number_format($item->nominal, 0, ',', '.')
+                'nominal' => 'Rp '.number_format($item->nominal, 0, ',', '.'),
             ])
             ->toArray();
     }
@@ -305,8 +316,9 @@ class MetodePembayaranChart extends Widget
     public function getPeriodeLabel(): string
     {
         if ($this->filter === 'custom' && $this->customStartDate && $this->customEndDate) {
-            return Carbon::parse($this->customStartDate)->format('d M Y') . ' - ' . Carbon::parse($this->customEndDate)->format('d M Y');
+            return Carbon::parse($this->customStartDate)->format('d M Y').' - '.Carbon::parse($this->customEndDate)->format('d M Y');
         }
+
         return $this->getFilters()[$this->filter] ?? 'Bulan Ini';
     }
 
@@ -318,6 +330,7 @@ class MetodePembayaranChart extends Widget
     public function getPersentase(float $nominal): float
     {
         $total = $this->getTotalKeseluruhan();
+
         return $total > 0 ? ($nominal / $total) * 100 : 0;
     }
 
@@ -328,16 +341,16 @@ class MetodePembayaranChart extends Widget
         }
 
         $baseColors = [
-            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', 
+            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899',
             '#06B6D4', '#84CC16', '#F97316', '#6366F1', '#14B8A6', '#F43F5E',
-            '#A855F7', '#22C55E', '#FBBF24', '#FB7185', '#38BDF8', '#A3A3A3'
+            '#A855F7', '#22C55E', '#FBBF24', '#FB7185', '#38BDF8', '#A3A3A3',
         ];
-        
+
         $colors = [];
         for ($i = 0; $i < $count; $i++) {
             $colors[] = $baseColors[$i % count($baseColors)];
         }
-        
+
         return $colors;
     }
 }
