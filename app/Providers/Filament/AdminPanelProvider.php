@@ -3,7 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\AnalisisData;
-use App\Filament\Widgets\RingkasanStatistikUtama;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -12,19 +12,16 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
-use Jeffgreco13\FilamentBreezy\BreezyCore;
-use Filament\Pages\Page;
-use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
-use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,7 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
-            ->theme(asset('css/filament/admin/theme.css') . '?v=' . filemtime(public_path('css/filament/admin/theme.css')))
+            ->theme(asset('css/filament/admin/theme.css').'?v='.filemtime(public_path('css/filament/admin/theme.css')))
             ->simplePageMaxContentWidth('6xl')
             ->passwordReset()
             ->emailVerification()
@@ -57,9 +54,12 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
-                AnalisisData::class
+                AnalisisData::class,
             ])
-            ->databaseNotifications()
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => '<span style="margin-right: 0.25rem;" class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-1 text-xs font-bold text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">SIMADI '.e(config('app.version')).'</span>'
+            )
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn (): string => Blade::render('@include("filament.components.aduan-saran-icon")')
@@ -116,15 +116,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ])                ->navigationGroups([
-                    __('app.navigation.groups.program'),
-                    __('app.navigation.groups.reports_finance'),
-                    __('app.navigation.groups.administrator'),
-                ]);
+            ])->navigationGroups([
+                __('app.navigation.groups.program'),
+                __('app.navigation.groups.reports_finance'),
+                __('app.navigation.groups.administrator'),
+            ]);
     }
 }
-
-
-
-
-
