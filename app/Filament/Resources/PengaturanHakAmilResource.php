@@ -64,8 +64,7 @@ class PengaturanHakAmilResource extends Resource
 
                         Forms\Components\Toggle::make('aktif')
                             ->default(true)
-                            ->label('Status Aktif')
-                            ->disabled(),
+                            ->label('Status Aktif'),
                     ])
                     ->columns(1),
             ]);

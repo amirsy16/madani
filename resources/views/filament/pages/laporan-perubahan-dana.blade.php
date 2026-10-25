@@ -474,6 +474,9 @@
             </div>
         </div>
 
+        {{-- Section Hak Amil: data dihitung di LaporanPerubahanDana, kini dirangkai ke layar (WP-D) --}}
+        @include('filament.pages.laporan.hak-amil-section')
+
         @else
         <!-- Empty State -->
         <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-12 text-center">
