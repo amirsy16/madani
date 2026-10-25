@@ -63,6 +63,22 @@ class DonasiResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    /**
+     * Badge jumlah transaksi donasi pada menu navigasi, mengikuti
+     * pola DonaturResource/FundraiserResource.
+     */
+    public static function getNavigationBadge(): ?string
+    {
+        $totalDonasi = static::getModel()::count();
+
+        return $totalDonasi > 0 ? (string) $totalDonasi : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
     public static function getSlug(): string
     {
         return 'donasi';
