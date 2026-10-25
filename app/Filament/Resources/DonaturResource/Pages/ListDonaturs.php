@@ -18,7 +18,7 @@ class ListDonaturs extends ListRecords
     {
         return [
             ExcelImportAction::make()
-                ->label('Import Donatur')
+                ->label('Impor Donatur')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->slideOver()
@@ -33,23 +33,23 @@ class ListDonaturs extends ListRecords
                 ->mutateAfterValidationUsing(function (array $data): array {
                     // Generate kode donatur
                     $data['kode_donatur'] = Donatur::generateNewKodeDonatur();
-                    
+
                     // Normalize gender
                     $data['gender'] = strtolower(trim($data['gender']));
-                    
+
                     // Resolve pekerjaan jika ada
-                    if (!empty($data['pekerjaan'])) {
-                        $pekerjaan = Pekerjaan::where('nama', 'LIKE', '%' . trim($data['pekerjaan']) . '%')
+                    if (! empty($data['pekerjaan'])) {
+                        $pekerjaan = Pekerjaan::where('nama', 'LIKE', '%'.trim($data['pekerjaan']).'%')
                             ->where('aktif', true)->first();
                         $data['pekerjaan_id'] = $pekerjaan?->id;
                     }
                     unset($data['pekerjaan']);
-                    
+
                     // Set alamat_lengkap dari alamat_detail
-                    if (!empty($data['alamat_detail'])) {
+                    if (! empty($data['alamat_detail'])) {
                         $data['alamat_lengkap'] = trim($data['alamat_detail']);
                     }
-                    
+
                     return $data;
                 })
                 ->sampleExcel(
@@ -80,8 +80,8 @@ class ListDonaturs extends ListRecords
                         ],
                     ],
                     fileName: 'template_import_donatur.xlsx',
-                    sampleButtonLabel: 'Download Template',
-                    customiseActionUsing: fn(Action $action) => $action
+                    sampleButtonLabel: 'Unduh Template',
+                    customiseActionUsing: fn (Action $action) => $action
                         ->color('gray')
                         ->icon('heroicon-o-document-arrow-down'),
                 ),

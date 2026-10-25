@@ -17,7 +17,7 @@
                 </span>
             </div>
             <div class="flex flex-col gap-1">
-                <span class="text-xs font-medium text-gray-700 dark:text-gray-200">Total Donatur Unik</span>
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-200">Total Donatur</span>
                 <span class="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
                     {{ number_format($summary['donatur'], 0, ',', '.') }}
                 </span>

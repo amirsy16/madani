@@ -112,7 +112,7 @@ class FundraiserPerformanceWidget extends BaseWidget
                     ->action(
                         Action::make('lihatDonatur')
                             ->modalHeading(fn ($record) => "Daftar Donatur - {$record->nama_fundraiser}")
-                            ->modalDescription(fn ($record) => "Total {$record->total_donatur_unique} donatur unik")
+                            ->modalDescription(fn ($record) => "Total {$record->total_donatur_unique} donatur")
                             ->modalWidth('7xl')
                             ->modalContent(fn ($record) => view('filament.widgets.fundraiser-donatur-modal', [
                                 'fundraiser' => $record,

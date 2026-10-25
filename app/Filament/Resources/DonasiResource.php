@@ -264,10 +264,10 @@ class DonasiResource extends Resource
                         // null saat dehydrasi (error 500), dan -1 lolos karena
                         // formatter client-side hanya mengubah tampilan.
                         ->numeric()
-                        ->minValue(1)
+                        ->minValue(1000)
                         ->validationMessages([
                             'numeric' => 'Nominal donasi harus berupa angka.',
-                            'min' => 'Nominal donasi minimal Rp 1.',
+                            'min' => 'Nominal donasi minimal Rp 1.000.',
                         ])
                         ->dehydrateStateUsing(fn ($state) => filled($state) ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                         )
@@ -431,7 +431,7 @@ class DonasiResource extends Resource
                 ->schema([
                     Select::make('status_konfirmasi')
                         ->options([
-                            'pending' => 'Pending',
+                            'pending' => 'Menunggu Verifikasi',
                             'verified' => 'Terverifikasi',
                             'rejected' => 'Ditolak',
                         ])
@@ -612,7 +612,7 @@ class DonasiResource extends Resource
                         default => 'gray',
                     })
                     ->tooltip(fn (Donasi $record): string => match ($record->status_konfirmasi) {
-                        'pending' => 'Pending',
+                        'pending' => 'Menunggu Verifikasi',
                         'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',
                         default => $record->status_konfirmasi,
@@ -765,7 +765,7 @@ class DonasiResource extends Resource
                 SelectFilter::make('status_konfirmasi')
                     ->label('Status Konfirmasi')
                     ->options([
-                        'pending' => 'Pending',
+                        'pending' => 'Menunggu Verifikasi',
                         'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',    ]),
 
@@ -878,9 +878,9 @@ class DonasiResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
 
-                // Action untuk Download PDF Invoice
+                // Action untuk mengunduh PDF Invoice
                 Tables\Actions\Action::make('downloadPDF')
-                    ->label('Download PDF')
+                    ->label('Unduh PDF')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('primary')
                     ->visible(fn (?Donasi $record = null) => $record && $record->status_konfirmasi === 'verified')
@@ -909,7 +909,7 @@ class DonasiResource extends Resource
                                 $action->halt();
                             }
                         }),
-                    ExportBulkAction::make(),
+                    ExportBulkAction::make()->label('Ekspor Excel'),
                     // ... any other existing bulk actions ...
                 ]),
             ])

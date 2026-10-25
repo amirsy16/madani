@@ -269,7 +269,7 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
                         ->label('Status Konfirmasi')
                         ->options([
                             'all' => 'Semua Status',
-                            'pending' => 'Pending',
+                            'pending' => 'Menunggu Verifikasi',
                             'verified' => 'Terverifikasi',
                             'rejected' => 'Ditolak',
                         ]) //
@@ -321,7 +321,7 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
 
                 // Notify the user that data has been refreshed.
                 Notification::make()
-                    ->title('Data berhasil di-refresh')
+                    ->title('Data berhasil diperbarui')
                     ->success()
                     ->send();
             });
@@ -424,7 +424,7 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
         if ($this->statusKonfirmasi !== 'verified') {
             $statusLabel = match ($this->statusKonfirmasi) {
                 'all' => 'Semua Status',
-                'pending' => 'Pending',
+                'pending' => 'Menunggu Verifikasi',
                 'rejected' => 'Ditolak',
                 default => 'Terverifikasi'
             };
@@ -840,7 +840,7 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) { //
-                        'pending' => 'Pending',
+                        'pending' => 'Menunggu Verifikasi',
                         'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',
                         default => ucfirst($state),
@@ -889,7 +889,12 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
                                 Column::make('metodePembayaran.nama')->heading('Metode Pembayaran'),
                                 Column::make('jumlah')->heading('Jumlah (Rp)')->formatStateUsing(fn ($state, $record) => $record->jenisDonasi?->apakah_barang ? 0 : $state),
                                 Column::make('perkiraan_nilai_barang')->heading('Nilai Barang (Rp)')->formatStateUsing(fn ($state, $record) => $record->jenisDonasi?->apakah_barang ? $state : 0),
-                                Column::make('status_konfirmasi')->heading('Status Konfirmasi'),
+                                Column::make('status_konfirmasi')->heading('Status Konfirmasi')->formatStateUsing(fn ($state) => match ($state) {
+                                    'pending' => 'Menunggu Verifikasi',
+                                    'verified' => 'Terverifikasi',
+                                    'rejected' => 'Ditolak',
+                                    default => $state,
+                                }),
                                 Column::make('atas_nama_hamba_allah')->heading('Anonim')->formatStateUsing(fn ($state) => $state ? 'Ya' : 'Tidak'),
                                 Column::make('fundraiser.nama_fundraiser')->heading('Fundraiser'),
                                 Column::make('dicatatOleh.name')->heading('Dicatat Oleh'),
@@ -898,18 +903,18 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
             ])
             ->headerActions([
                 \Filament\Tables\Actions\Action::make('refreshTable')
-                    ->label('Refresh Tabel')
+                    ->label('Perbarui Tabel')
                     ->icon('heroicon-o-arrow-path')
                     ->color('secondary')
                     ->action(function () {
                         $this->calculateAllMetrics();
 
                         Notification::make()
-                            ->title('Tabel berhasil di-refresh')
+                            ->title('Tabel berhasil diperbarui')
                             ->success()
                             ->send();
                     }),
-                ExportAction::make(), // Keep the export action
+                ExportAction::make()->label('Ekspor Excel'), // Keep the export action
             ]);
     }
 

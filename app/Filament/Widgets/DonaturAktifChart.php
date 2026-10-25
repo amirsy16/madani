@@ -28,7 +28,7 @@ class DonaturAktifChart extends ApexChartWidget
 
     public function getSubheading(): string|Htmlable|null
     {
-        return 'Jumlah donatur unik yang berdonasi terverifikasi per bulan — '.(($this->filter ?? '6_bulan') === '12_bulan' ? '12 bulan terakhir' : '6 bulan terakhir');
+        return 'Jumlah donatur yang berdonasi terverifikasi per bulan — '.(($this->filter ?? '6_bulan') === '12_bulan' ? '12 bulan terakhir' : '6 bulan terakhir');
     }
 
     protected function getFilters(): ?array

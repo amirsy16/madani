@@ -66,7 +66,7 @@ class JenisDonasiResource extends Resource
                             ->label('Nama Jenis Donasi')
                             ->placeholder('Contoh: Zakat Fitrah, Zakat Maal, Infaq Umum, Sedekah')
                             ->unique(ignoreRecord: true)
-                            ->helperText('Nama jenis donasi harus unik'),
+                            ->helperText('Nama jenis donasi tidak boleh sama dengan yang sudah ada'),
 
                         Forms\Components\TextInput::make('kode')
                             ->maxLength(255)

@@ -69,10 +69,10 @@ class DonasisRelationManager extends RelationManager
                     ])
                     ->required()
                     ->numeric()
-                    ->minValue(1)
+                    ->minValue(1000)
                     ->validationMessages([
                         'numeric' => 'Nominal donasi harus berupa angka.',
-                        'min' => 'Nominal donasi minimal Rp 1.',
+                        'min' => 'Nominal donasi minimal Rp 1.000.',
                     ])
                     ->dehydrateStateUsing(fn ($state) => $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                     )
@@ -197,7 +197,7 @@ class DonasisRelationManager extends RelationManager
 
                 Select::make('status_konfirmasi')
                     ->options([
-                        'pending' => 'Pending',
+                        'pending' => 'Menunggu Verifikasi',
                         'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',
                     ])
@@ -318,7 +318,7 @@ class DonasisRelationManager extends RelationManager
 
                 Tables\Filters\SelectFilter::make('status_konfirmasi')
                     ->label('Status Konfirmasi')
-                    ->options(['pending' => 'Pending', 'verified' => 'Terverifikasi', 'rejected' => 'Ditolak']),
+                    ->options(['pending' => 'Menunggu Verifikasi', 'verified' => 'Terverifikasi', 'rejected' => 'Ditolak']),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
@@ -330,7 +330,7 @@ class DonasisRelationManager extends RelationManager
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make(),
+                    ExportBulkAction::make()->label('Ekspor Excel'),
                 ]),
             ])
             ->defaultSort('tanggal_donasi', 'desc');

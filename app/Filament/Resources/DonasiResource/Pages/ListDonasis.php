@@ -23,7 +23,7 @@ class ListDonasis extends ListRecords
     {
         return [
             ExcelImportAction::make()
-                ->label('Import Donasi')
+                ->label('Impor Donasi')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->slideOver()
@@ -86,10 +86,10 @@ class ListDonasis extends ListRecords
                     // Set default perkiraan_nilai_barang to 0 if empty
                     $data['perkiraan_nilai_barang'] = ! empty($data['perkiraan_nilai_barang']) ? (float) $data['perkiraan_nilai_barang'] : null;
 
-                    // Donasi uang wajib bernilai minimal Rp 1 (paritas dengan
+                    // Donasi uang wajib bernilai minimal Rp 1.000 (paritas dengan
                     // validasi form); donasi barang dinilai dari perkiraan_nilai_barang.
-                    if (! $jenisDonasi->apakah_barang && $data['jumlah'] < 1) {
-                        throw new \Exception("Jumlah donasi minimal Rp 1 untuk jenis donasi uang (kode donatur '{$donatur->kode_donatur}')");
+                    if (! $jenisDonasi->apakah_barang && $data['jumlah'] < 1000) {
+                        throw new \Exception("Jumlah donasi minimal Rp 1.000 untuk jenis donasi uang (kode donatur '{$donatur->kode_donatur}')");
                     }
 
                     // Donasi anonim tidak boleh tetap terhubung ke donatur —
@@ -150,7 +150,7 @@ class ListDonasis extends ListRecords
                         ],
                     ],
                     fileName: 'template_import_donasi.xlsx',
-                    sampleButtonLabel: 'Download Template',
+                    sampleButtonLabel: 'Unduh Template',
                     customiseActionUsing: fn (Action $action) => $action
                         ->color('gray')
                         ->icon('heroicon-o-document-arrow-down'),

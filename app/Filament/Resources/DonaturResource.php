@@ -4,43 +4,41 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DonaturResource\Pages;
 use App\Filament\Resources\DonaturResource\RelationManagers\DonasisRelationManager;
+use App\Models\District;
 use App\Models\Donatur;
 use App\Models\Regency;
-use App\Models\District;
 use App\Models\Village;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\Filter;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use Filament\Tables\Filters\TernaryFilter;
-use Carbon\Carbon;
-use Filament\Tables\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class DonaturResource extends Resource
 {
     protected static ?string $model = Donatur::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    
+
     protected static ?string $navigationLabel = 'Donatur';
-    
+
     protected static ?string $pluralModelLabel = 'Donatur';
-    
+
     protected static ?string $modelLabel = 'Donatur';
-    
+
     public static function getSlug(): string
     {
         return 'donatur';
     }
-    
+
     public static function getNavigationGroup(): ?string
     {
         return __('app.navigation.groups.program');
@@ -52,6 +50,7 @@ class DonaturResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         $totalDonatur = static::getModel()::count();
+
         return $totalDonatur > 0 ? (string) $totalDonatur : null;
     }
 
@@ -73,7 +72,7 @@ class DonaturResource extends Resource
                             ->label('ID Donatur')
                             ->disabled()
                             ->dehydrated(false)
-                            ->helperText('Kode akan digenerate otomatis saat donatur disimpan')
+                            ->helperText('Kode dibuat otomatis saat donatur disimpan')
                             ->hiddenOn('create'),
                         Forms\Components\Select::make('gender')
                             ->options([
@@ -94,20 +93,20 @@ class DonaturResource extends Resource
                                     $similarDonaturs = static::checkSimilarNames($state);
                                     if ($similarDonaturs->isNotEmpty()) {
                                         $list = $similarDonaturs->map(function ($donatur) {
-                                            return "• {$donatur->nama} (ID: {$donatur->kode_donatur}, HP: " . 
-                                                   ($donatur->nomor_hp ? '62' . ltrim($donatur->nomor_hp, '0') : '-') . ")";
+                                            return "• {$donatur->nama} (ID: {$donatur->kode_donatur}, HP: ".
+                                                   ($donatur->nomor_hp ? '62'.ltrim($donatur->nomor_hp, '0') : '-').')';
                                         })->join("\n");
-                                        
+
                                         \Filament\Notifications\Notification::make()
                                             ->warning()
                                             ->title('⚠️ Nama Donatur Mirip')
-                                            ->body("Ditemukan nama yang mirip:\n\n" . $list . "\n\nPastikan ini bukan donatur yang sama!")
+                                            ->body("Ditemukan nama yang mirip:\n\n".$list."\n\nPastikan ini bukan donatur yang sama!")
                                             ->persistent()
                                             ->send();
                                     }
                                 }
                             }),
-                            
+
                         Forms\Components\TextInput::make('nomor_hp')
                             ->tel()
                             ->unique(ignoreRecord: true)
@@ -143,7 +142,7 @@ class DonaturResource extends Resource
                             ->preload()
                             ->label('Pekerjaan'),
                     ])->columns(2),
-                
+
                 Forms\Components\Section::make('Alamat Lengkap')
                     ->schema([
                         Forms\Components\Select::make('province_id')
@@ -157,14 +156,15 @@ class DonaturResource extends Resource
                                 $set('district_id', null);
                                 $set('village_id', null);
                             }),
-                            
+
                         Forms\Components\Select::make('city_id')
                             ->label('Kota/Kabupaten')
                             ->options(function (Get $get) {
                                 $provinceId = $get('province_id');
-                                if (!$provinceId) {
+                                if (! $provinceId) {
                                     return [];
                                 }
+
                                 return Regency::where('province_id', $provinceId)
                                     ->pluck('name', 'id')
                                     ->toArray();
@@ -175,14 +175,15 @@ class DonaturResource extends Resource
                                 $set('district_id', null);
                                 $set('village_id', null);
                             }),
-                            
+
                         Forms\Components\Select::make('district_id')
                             ->label('Kecamatan')
                             ->options(function (Get $get) {
                                 $regencyId = $get('city_id');
-                                if (!$regencyId) {
+                                if (! $regencyId) {
                                     return [];
                                 }
+
                                 return District::where('regency_id', $regencyId)
                                     ->pluck('name', 'id')
                                     ->toArray();
@@ -190,20 +191,21 @@ class DonaturResource extends Resource
                             ->searchable()
                             ->live()
                             ->afterStateUpdated(fn (Set $set) => $set('village_id', null)),
-                            
+
                         Forms\Components\Select::make('village_id')
                             ->label('Desa/Kelurahan')
                             ->options(function (Get $get) {
                                 $districtId = $get('district_id');
-                                if (!$districtId) {
+                                if (! $districtId) {
                                     return [];
                                 }
+
                                 return Village::where('district_id', $districtId)
                                     ->pluck('name', 'id')
                                     ->toArray();
                             })
                             ->searchable(),
-                            
+
                         Forms\Components\Textarea::make('alamat_detail')
                             ->label('Detail Alamat')
                             ->placeholder('Jalan, Nomor Rumah, RT/RW, dll')
@@ -231,7 +233,7 @@ class DonaturResource extends Resource
                     ->label('Nama'),
                 Tables\Columns\TextColumn::make('nomor_hp')
                     ->searchable()
-                    ->formatStateUsing(fn ($state) => $state ? '62' . ltrim($state, '0') : null),
+                    ->formatStateUsing(fn ($state) => $state ? '62'.ltrim($state, '0') : null),
                 Tables\Columns\TextColumn::make('donasis_count')
                     ->counts('donasis')
                     ->label('Jml Transaksi')
@@ -250,7 +252,7 @@ class DonaturResource extends Resource
                         'organization' => 'organisasi',
                     ])
                     ->label('Jenis Kelamin'),
-                
+
                 Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('dari_tanggal')
@@ -272,15 +274,16 @@ class DonaturResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['dari_tanggal'] ?? null) {
-                            $indicators['dari_tanggal'] = 'Dari tanggal ' . Carbon::parse($data['dari_tanggal'])->format('d M Y');
+                            $indicators['dari_tanggal'] = 'Dari tanggal '.Carbon::parse($data['dari_tanggal'])->format('d M Y');
                         }
                         if ($data['sampai_tanggal'] ?? null) {
-                            $indicators['sampai_tanggal'] = 'Sampai tanggal ' . Carbon::parse($data['sampai_tanggal'])->format('d M Y');
+                            $indicators['sampai_tanggal'] = 'Sampai tanggal '.Carbon::parse($data['sampai_tanggal'])->format('d M Y');
                         }
+
                         return $indicators;
                     })
                     ->label('Tanggal Pendaftaran'),
-                
+
                 SelectFilter::make('pekerjaan_id')
                     ->relationship('pekerjaan', 'nama')
                     ->searchable()
@@ -295,7 +298,7 @@ class DonaturResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make() // Dari pxlrbt/filament-excel
+                    ExportBulkAction::make()->label('Ekspor Excel'), // Dari pxlrbt/filament-excel
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -318,18 +321,15 @@ class DonaturResource extends Resource
         ];
     }
 
-       public static function getWidgets(): array
+    public static function getWidgets(): array
     {
         return [
             DonaturResource\Widgets\DonaturStats::class,
         ];
     }
-    
+
     /**
      * Cek nama donatur yang mirip menggunakan similarity algorithm
-     * 
-     * @param string $name
-     * @return \Illuminate\Support\Collection
      */
     protected static function checkSimilarNames(string $name): \Illuminate\Support\Collection
     {
@@ -338,41 +338,36 @@ class DonaturResource extends Resource
         $allDonaturs = Donatur::select('id', 'kode_donatur', 'nama', 'nomor_hp')
             ->where('created_at', '>=', now()->subYear())
             ->get();
-        
+
         $similarDonaturs = collect();
         $nameToCheck = strtolower(trim($name));
-        
+
         foreach ($allDonaturs as $donatur) {
             $existingName = strtolower(trim($donatur->nama));
-            
+
             // Hitung similarity percentage
             similar_text($nameToCheck, $existingName, $percent);
-            
+
             // Jika similarity >= 80%, masukkan ke list
             if ($percent >= 80) {
                 $donatur->similarity_percent = round($percent, 1);
                 $similarDonaturs->push($donatur);
             }
         }
-        
+
         // Sort berdasarkan similarity tertinggi dan batasi 5 hasil
         return $similarDonaturs->sortByDesc('similarity_percent')->take(5);
     }
-    
+
     /**
      * Cek apakah nomor HP sudah terdaftar
-     * 
-     * @param string $phone
-     * @return \App\Models\Donatur|null
      */
     protected static function checkExistingPhone(string $phone): ?Donatur
     {
         $cleanedPhone = ltrim($phone, '0');
-        
+
         return Donatur::where('nomor_hp', $cleanedPhone)
-            ->orWhere('nomor_hp', '0' . $cleanedPhone)
+            ->orWhere('nomor_hp', '0'.$cleanedPhone)
             ->first(['id', 'kode_donatur', 'nama', 'nomor_hp']);
     }
 }
-
-

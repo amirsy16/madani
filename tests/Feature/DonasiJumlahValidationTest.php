@@ -73,6 +73,14 @@ class DonasiJumlahValidationTest extends TestCase
         $this->assertDatabaseMissing('donasis', ['donatur_id' => $this->donatur->id]);
     }
 
+    public function test_nominal_dibawah_seribu_ditolak_dengan_validasi(): void
+    {
+        $this->submitDenganNominal('999')
+            ->assertHasFormErrors(['jumlah']);
+
+        $this->assertDatabaseMissing('donasis', ['donatur_id' => $this->donatur->id]);
+    }
+
     public function test_nominal_valid_tetap_tersimpan_sebagai_angka(): void
     {
         $this->submitDenganNominal('100000')

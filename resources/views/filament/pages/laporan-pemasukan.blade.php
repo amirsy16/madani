@@ -185,7 +185,7 @@
                 </h4>
                 <div class="space-y-2">
                     <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">👥 Total Donatur Unik</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">👥 Total Donatur</span>
                         <span class="text-sm font-bold text-gray-900 dark:text-white">{{ number_format($this->totalDonatur ?? 0, 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">

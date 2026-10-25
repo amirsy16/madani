@@ -23,7 +23,7 @@ class ListProgramPenyalurans extends ListRecords
     {
         return [
             ExcelImportAction::make()
-                ->label('Import Penyaluran')
+                ->label('Impor Penyaluran')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->slideOver()
@@ -136,7 +136,7 @@ class ListProgramPenyalurans extends ListRecords
                         ],
                     ],
                     fileName: 'template_import_program_penyaluran.xlsx',
-                    sampleButtonLabel: 'Download Template',
+                    sampleButtonLabel: 'Unduh Template',
                     customiseActionUsing: fn (Action $action) => $action
                         ->color('gray')
                         ->icon('heroicon-o-document-arrow-down'),

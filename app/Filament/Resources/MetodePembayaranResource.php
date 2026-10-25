@@ -3,42 +3,39 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MetodePembayaranResource\Pages;
-use App\Filament\Resources\MetodePembayaranResource\RelationManagers;
 use App\Models\MetodePembayaran;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Forms\Get;
+use Filament\Tables\Table;
 
 class MetodePembayaranResource extends Resource
 {
     protected static ?string $model = MetodePembayaran::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-    
+
     protected static ?string $navigationLabel = 'Metode Pembayaran';
-    
+
     protected static ?string $pluralModelLabel = 'Metode Pembayaran';
-    
+
     protected static ?string $modelLabel = 'Metode Pembayaran';
-    
+
     protected static ?int $navigationSort = 2;
-    
+
     public static function getSlug(): string
     {
         return 'metode-bayar';
     }
-    
+
     public static function getNavigationGroup(): ?string
     {
         return 'Pengaturan Master Data';
     }
-    
+
     /**
      * Navigation badge untuk menampilkan total metode pembayaran aktif
      * DISABLED: Untuk performa
@@ -48,7 +45,7 @@ class MetodePembayaranResource extends Resource
     //     $total = static::getModel()::where('aktif', true)->count();
     //     return $total > 0 ? (string) $total : null;
     // }
-    
+
     // /**
     //  * Warna badge navigation
     //  */
@@ -69,8 +66,8 @@ class MetodePembayaranResource extends Resource
                             ->label('Nama Metode Pembayaran')
                             ->placeholder('Contoh: Transfer BSI, QRIS, LinkAja')
                             ->unique(ignoreRecord: true)
-                            ->helperText('Nama metode harus unik'),
-                            
+                            ->helperText('Nama metode tidak boleh sama dengan yang sudah ada'),
+
                         Forms\Components\TextInput::make('kode')
                             ->maxLength(255)
                             ->label('Kode')
@@ -78,7 +75,7 @@ class MetodePembayaranResource extends Resource
                             ->unique(ignoreRecord: true)
                             ->helperText('Kode singkat untuk identifikasi (opsional)')
                             ->alphaDash(),
-                            
+
                         Forms\Components\Select::make('tipe')
                             ->required()
                             ->label('Tipe Pembayaran')
@@ -91,19 +88,19 @@ class MetodePembayaranResource extends Resource
                             ->live()
                             ->helperText('Pilih tipe pembayaran'),
                     ])->columns(2),
-                    
+
                 Forms\Components\Section::make('Informasi Rekening Bank')
                     ->schema([
                         Forms\Components\TextInput::make('bank_name')
                             ->maxLength(255)
                             ->label('Nama Bank')
                             ->placeholder('Contoh: BSI, Muamalat, Mandiri Syariah'),
-                            
+
                         Forms\Components\TextInput::make('nomor_rekening')
                             ->maxLength(255)
                             ->label('Nomor Rekening')
                             ->placeholder('Contoh: 1234567890'),
-                            
+
                         Forms\Components\TextInput::make('atas_nama_rekening')
                             ->maxLength(255)
                             ->label('Atas Nama Rekening')
@@ -112,7 +109,7 @@ class MetodePembayaranResource extends Resource
                     ->columns(2)
                     ->visible(fn (Get $get): bool => $get('tipe') === 'transfer_bank')
                     ->collapsible(),
-                    
+
                 Forms\Components\Section::make('Instruksi & Pengaturan')
                     ->schema([
                         Forms\Components\Textarea::make('instruksi_pembayaran')
@@ -121,7 +118,7 @@ class MetodePembayaranResource extends Resource
                             ->rows(4)
                             ->helperText('Contoh: "Setelah transfer, mohon kirim bukti ke WhatsApp: 08123456789"')
                             ->columnSpanFull(),
-                            
+
                         Forms\Components\Toggle::make('aktif')
                             ->required()
                             ->default(true)
@@ -141,14 +138,14 @@ class MetodePembayaranResource extends Resource
                     ->sortable()
                     ->weight('medium')
                     ->wrap(),
-                    
+
                 Tables\Columns\TextColumn::make('kode')
                     ->label('Kode')
                     ->searchable()
                     ->badge()
                     ->color('gray')
                     ->toggleable(),
-                    
+
                 Tables\Columns\TextColumn::make('tipe')
                     ->label('Tipe')
                     ->badge()
@@ -164,13 +161,13 @@ class MetodePembayaranResource extends Resource
                         'tunai' => 'Tunai',
                         default => $state,
                     }),
-                    
+
                 Tables\Columns\TextColumn::make('bank_name')
                     ->label('Bank')
                     ->searchable()
                     ->toggleable()
                     ->placeholder('-'),
-                    
+
                 Tables\Columns\TextColumn::make('nomor_rekening')
                     ->label('No. Rekening')
                     ->searchable()
@@ -178,13 +175,13 @@ class MetodePembayaranResource extends Resource
                     ->placeholder('-')
                     ->copyable()
                     ->copyMessage('Nomor rekening disalin!'),
-                    
+
                 Tables\Columns\TextColumn::make('atas_nama_rekening')
                     ->label('Atas Nama')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('-'),
-                    
+
                 Tables\Columns\IconColumn::make('aktif')
                     ->label('Status')
                     ->boolean()
@@ -193,13 +190,13 @@ class MetodePembayaranResource extends Resource
                     ->trueColor('success')
                     ->falseColor('danger')
                     ->alignCenter(),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                    
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Diperbarui')
                     ->dateTime('d/m/Y H:i')
@@ -214,7 +211,7 @@ class MetodePembayaranResource extends Resource
                         'transfer_bank' => 'Transfer Bank',
                         'tunai' => 'Tunai',
                     ]),
-                    
+
                 SelectFilter::make('aktif')
                     ->label('Status')
                     ->options([

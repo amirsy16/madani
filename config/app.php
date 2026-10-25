@@ -16,6 +16,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Versi Aplikasi SIMADI
+    |--------------------------------------------------------------------------
+    |
+    | Sumber tunggal nomor versi yang ditampilkan di brand sidebar, halaman
+    | login, dan halaman Tim Proyek. Naik versi cukup mengubah nilai ini.
+    |
+    */
+
+    'version' => 'v2.1',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
@@ -138,5 +150,3 @@ return [
     'organization_email' => env('ORGANIZATION_EMAIL', 'info@amalkit.org'),
     'organization_website' => env('ORGANIZATION_WEBSITE', 'www.amalkit.org'),
 ];
-
-

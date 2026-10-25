@@ -2,46 +2,62 @@
 
 namespace App\Filament\Pages;
 
-use App\Services\DanaService;
 use App\Models\Asnaf;
 use App\Models\BidangProgram;
+use App\Services\DanaService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
-use Livewire\Features\SupportFileDownloads\FileDownloadConfiguration;
-use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 
 class LaporanPerubahanDana extends Page implements HasForms
 {
-    use InteractsWithForms;
     use HasPageShield;
+    use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
+
     protected static string $view = 'filament.pages.laporan-perubahan-dana';
+
     protected static ?string $navigationGroup = 'Laporan & Keuangan';
+
     protected static ?string $slug = 'Laporan-perubahan-dana';
+
     protected static ?int $navigationSort = 2;
 
     public ?array $reportData = [];
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public array $asnafList = [];
+
     public array $bidangProgramList = [];
+
     public array $penggunaanHakAmil = [];
+
     public float $totalPenggunaanHakAmil = 0;
+
     public array $penerimaanHakAmilDetail = [];
+
     public float $totalPenerimaanHakAmil = 0;
+
     public array $penggunaanHakAmilDetail = [];
+
     public float $surplusDefisitHakAmil = 0;
+
     public array $summaryData = [];
+
     public float $totalSisaSaldo = 0;
+
     public array $financialStatus = [];
 
     /**
@@ -58,7 +74,7 @@ class LaporanPerubahanDana extends Page implements HasForms
         $this->bidangProgramList = BidangProgram::where('aktif', true)->pluck('nama_bidang')->toArray();
 
         // Ambil data laporan hak amil dari DanaService
-        $danaService = new DanaService();
+        $danaService = new DanaService;
         $laporanHakAmil = $danaService->getLaporanHakAmil($this->startDate, $this->endDate);
         $this->penerimaanHakAmilDetail = $laporanHakAmil['penerimaan_detail'];
         $this->totalPenerimaanHakAmil = $laporanHakAmil['total_penerimaan'];
@@ -100,10 +116,11 @@ class LaporanPerubahanDana extends Page implements HasForms
                 ->title('Tanggal mulai tidak boleh setelah tanggal akhir')
                 ->danger()
                 ->send();
+
             return;
         }
 
-        $danaService = new DanaService();
+        $danaService = new DanaService;
         $this->reportData = $danaService->getLaporanPerubahanDana($this->startDate, $this->endDate);
 
         // Prefetch persentase hak amil untuk semua sumber dana dalam satu query,
@@ -116,7 +133,7 @@ class LaporanPerubahanDana extends Page implements HasForms
             $this->totalSisaSaldo = $this->summaryData['total_saldo_akhir'] ?? 0;
             $this->financialStatus = $this->getFinancialStatus();
         }
-        
+
         // Update data hak amil setiap kali filter diganti
         $laporanHakAmil = $danaService->getLaporanHakAmil($this->startDate, $this->endDate);
         $this->penerimaanHakAmilDetail = $laporanHakAmil['penerimaan_detail'];
@@ -161,27 +178,27 @@ class LaporanPerubahanDana extends Page implements HasForms
     public function getFinancialStatus(): array
     {
         $balance = $this->totalSisaSaldo;
-        
+
         if ($balance >= 1000000) {
             return [
                 'status' => 'SEHAT',
                 'message' => 'Saldo mencukupi untuk operasional',
                 'icon' => '✅',
-                'color_class' => 'bg-green-100 border-green-300 text-green-800 dark:bg-green-900 dark:border-green-600 dark:text-green-200'
+                'color_class' => 'bg-green-100 border-green-300 text-green-800 dark:bg-green-900 dark:border-green-600 dark:text-green-200',
             ];
         } elseif ($balance >= 0) {
             return [
                 'status' => 'PERLU PERHATIAN',
                 'message' => 'Saldo terbatas',
                 'icon' => '⚠️',
-                'color_class' => 'bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900 dark:border-yellow-600 dark:text-yellow-200'
+                'color_class' => 'bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900 dark:border-yellow-600 dark:text-yellow-200',
             ];
         } else {
             return [
                 'status' => 'DEFISIT',
                 'message' => 'Diperlukan tindakan segera',
                 'icon' => '❌',
-                'color_class' => 'bg-red-100 border-red-300 text-red-800 dark:bg-red-900 dark:border-red-600 dark:text-red-200'
+                'color_class' => 'bg-red-100 border-red-300 text-red-800 dark:bg-red-900 dark:border-red-600 dark:text-red-200',
             ];
         }
     }
@@ -191,7 +208,7 @@ class LaporanPerubahanDana extends Page implements HasForms
      */
     public function formatCurrency($amount): string
     {
-        return 'Rp ' . number_format($amount ?? 0, 0, ',', '.');
+        return 'Rp '.number_format($amount ?? 0, 0, ',', '.');
     }
 
     /**
@@ -204,21 +221,23 @@ class LaporanPerubahanDana extends Page implements HasForms
 
     /**
      * Download PDF report
-     */    public function downloadPDF()
+     */
+    public function downloadPDF()
     {
         try {
             // Ensure we have current data
             if (empty($this->reportData)) {
                 $this->generateReport();
             }
-            
+
             // Check if we still don't have data after generating
             if (empty($this->reportData)) {
                 Notification::make()
                     ->title('Tidak ada data')
-                    ->body('Silakan generate laporan terlebih dahulu sebelum download PDF.')
+                    ->body('Silakan buat laporan terlebih dahulu sebelum mengunduh PDF.')
                     ->warning()
                     ->send();
+
                 return null;
             }
 
@@ -237,22 +256,21 @@ class LaporanPerubahanDana extends Page implements HasForms
                 'detailDanaNonHalal' => $this->detailDanaNonHalal ?? [],
                 'startDate' => $this->startDate,
                 'endDate' => $this->endDate,
-                'generatedAt' => now()->format('d/m/Y H:i:s')
+                'generatedAt' => now()->format('d/m/Y H:i:s'),
             ];
 
-            $filename = 'Laporan_Perubahan_Dana_' . Carbon::parse($this->startDate)->format('d-m-Y') . '_sd_' . Carbon::parse($this->endDate)->format('d-m-Y') . '.pdf';
-            
-            
+            $filename = 'Laporan_Perubahan_Dana_'.Carbon::parse($this->startDate)->format('d-m-Y').'_sd_'.Carbon::parse($this->endDate)->format('d-m-Y').'.pdf';
+
             // Create temporary file path
             $tempPath = storage_path('app/temp/');
-            if (!is_dir($tempPath)) {
+            if (! is_dir($tempPath)) {
                 mkdir($tempPath, 0755, true);
             }
-            
-            $fullTempPath = $tempPath . $filename;
-            
+
+            $fullTempPath = $tempPath.$filename;
+
             // Generate and save PDF to temporary file
-            
+
             // Provide base64 logo as fallback if GD extension not available
             $logoBase64 = null;
             try {
@@ -263,12 +281,12 @@ class LaporanPerubahanDana extends Page implements HasForms
                     $logoBase64 = base64_encode($logoData);
                 }
             } catch (\Exception $e) {
-                Log::warning('Could not load logo for base64 encoding: ' . $e->getMessage());
+                Log::warning('Could not load logo for base64 encoding: '.$e->getMessage());
             }
-            
+
             // Add logo base64 to data array
             $data['logoBase64'] = $logoBase64;
-            
+
             $pdf = Pdf::loadView('laporan.pdf.perubahan-dana-clean', $data)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
@@ -282,24 +300,23 @@ class LaporanPerubahanDana extends Page implements HasForms
                     'defaultPaperSize' => 'a4',
                     'chroot' => storage_path('fonts/'), // Limit file access
                 ]);
-            
+
             // Save PDF to temporary file
             file_put_contents($fullTempPath, $pdf->output());
-                
-            
+
             // Return file as download and delete after sending
             return response()->download($fullTempPath, $filename)->deleteFileAfterSend(true);
 
         } catch (\Exception $e) {
-            Log::error('Error generating PDF: ' . $e->getMessage());
-            Log::error('PDF Error Stack Trace: ' . $e->getTraceAsString());
-            
+            Log::error('Error generating PDF: '.$e->getMessage());
+            Log::error('PDF Error Stack Trace: '.$e->getTraceAsString());
+
             Notification::make()
-                ->title('Error generating PDF')
-                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->title('Gagal Membuat PDF')
+                ->body('Terjadi kesalahan: '.$e->getMessage())
                 ->danger()
                 ->send();
-                
+
             return null;
         }
     }
@@ -311,15 +328,15 @@ class LaporanPerubahanDana extends Page implements HasForms
     {
         return [
             Action::make('downloadPDF')
-                ->label('Download PDF')
+                ->label('Unduh PDF')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->action('downloadPDF')
-                ->visible(fn () => !empty($this->reportData))
+                ->visible(fn () => ! empty($this->reportData))
                 ->requiresConfirmation(false)
-                ->tooltip('Download laporan perubahan dana dalam format PDF')
+                ->tooltip('Unduh laporan perubahan dana dalam format PDF')
                 ->extraAttributes([
-                    'class' => 'shadow-lg hover:shadow-xl transition-shadow duration-200'
+                    'class' => 'shadow-lg hover:shadow-xl transition-shadow duration-200',
                 ]),
         ];
     }
