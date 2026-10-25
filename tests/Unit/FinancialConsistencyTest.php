@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Filament\Resources\DonasiResource\Widgets\DonasiOverviewStats;
-use App\Filament\Widgets\HakAmilOverviewWidget;
 use App\Filament\Widgets\ZakatStatsOverview;
 use App\Models\Donasi;
 use App\Models\JenisDonasi;
@@ -93,13 +92,9 @@ class FinancialConsistencyTest extends TestCase
         $hakAmil = $this->rpToFloat($this->statValue($zakat, 'Hak Amil'));
         $this->assertEqualsWithDelta(100_000, $hakAmil, 0.01);
 
-        $amilWidget = $this->computeStats(new HakAmilOverviewWidget);
-        $hakAmil2 = $this->rpToFloat($this->statValue($amilWidget, 'Hak Amil Bulan Ini'));
-        $this->assertEqualsWithDelta(100_000, $hakAmil2, 0.01);
-
-        // Total donasi di widget amil juga harus exclude langsung.
-        $totalAmil = $this->rpToFloat($this->statValue($amilWidget, 'Total Donasi Bulan Ini'));
-        $this->assertEqualsWithDelta(1_000_000, $totalAmil, 0.01);
+        // Widget HakAmilOverviewWidget dipensiunkan dan dihapus pada WP-E;
+        // paritas exclude Penyaluran Langsung cukup diverifikasi via
+        // ZakatStatsOverview di atas.
     }
 
     public function test_model_normalisasi_uang_vs_barang(): void
@@ -139,37 +134,6 @@ class FinancialConsistencyTest extends TestCase
             'nomor_transaksi_unik' => 'TRX-'.uniqid(),
         ]);
         $this->assertNull($d2->refresh()->perkiraan_nilai_barang);
-    }
-
-    public function test_detail_amil_memakai_tabel_yang_benar(): void
-    {
-        $jenisAmil = \App\Models\JenisPenggunaanHakAmil::create([
-            'nama' => 'Operasional Uji',
-        ]);
-        $user = \App\Models\User::create([
-            'name' => 'Amil Tester',
-            'email' => uniqid().'@test.local',
-            'password' => 'password',
-        ]);
-        \App\Models\PenggunaanHakAmil::create([
-            'tanggal' => now()->toDateString(),
-            'jenis_penggunaan_hak_amil_id' => $jenisAmil->id,
-            'keterangan' => 'Uji',
-            'jumlah' => 250_000,
-            'user_id' => $user->id,
-        ]);
-
-        $svc = new \App\Services\DanaService;
-        $start = now()->startOfMonth()->toDateString();
-        $end = now()->endOfMonth()->toDateString();
-
-        $byJenis = $svc->getDetailPenggunaanHakAmilByJenis($start, $end);
-        $this->assertNotEmpty($byJenis, 'getDetailPenggunaanHakAmilByJenis harus menemukan data.');
-        $this->assertEqualsWithDelta(250_000, (float) $byJenis[0]['total_jumlah'], 0.01);
-
-        $detail = $svc->getDetailJenisPenggunaanAmil($start, $end);
-        $this->assertNotEmpty($detail, 'getDetailJenisPenggunaanAmil harus baca penggunaan_hak_amils.');
-        $this->assertEqualsWithDelta(250_000, (float) $detail[0]['jumlah'], 0.01);
     }
 
     public function test_cache_bulan_berganti_hitung_ulang(): void

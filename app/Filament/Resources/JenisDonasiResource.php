@@ -36,16 +36,6 @@ class JenisDonasiResource extends Resource
         return 'Pengaturan Master Data';
     }
 
-    /**
-     * Navigation badge untuk menampilkan total jenis donasi aktif
-     * DISABLED: Untuk performa
-     */
-    // public static function getNavigationBadge(): ?string
-    // {
-    //     $total = static::getModel()::where('aktif', true)->count();
-    //     return $total > 0 ? (string) $total : null;
-    // }
-
     // /**
     //  * Warna badge navigation
     //  */

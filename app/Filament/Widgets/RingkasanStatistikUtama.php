@@ -22,8 +22,6 @@ class RingkasanStatistikUtama extends Widget
         return \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user());
     }
 
-    protected $listeners = ['analisisFiltersUpdated' => 'onAnalisisFiltersUpdated'];
-
     protected static string $view = 'filament.widgets.ringkasan-statistik-utama';
 
     protected ?string $heading = '📊 Dashboard Keuangan Madani - Ringkasan Lengkap';
@@ -72,19 +70,6 @@ class RingkasanStatistikUtama extends Widget
         $this->currentPeriod = request()->get('period', 'keseluruhan');
     }
 
-    public function onAnalisisFiltersUpdated($periode, $limit)
-    {
-        $map = [
-            'all_time' => 'keseluruhan',
-            'current_month' => 'bulan_ini',
-            'last_month' => 'bulan_lalu',
-            'current_year' => 'tahun_ini',
-            'last_3_months' => '3_bulan',
-            'last_6_months' => '6_bulan',
-        ];
-        $this->currentPeriod = $map[$periode] ?? 'keseluruhan';
-    }
-
     public function setTimePeriod($period)
     {
         $this->currentPeriod = $period;
@@ -117,8 +102,6 @@ class RingkasanStatistikUtama extends Widget
                 $this->endDate = $temp;
             }
         }
-        // Refresh stats dengan memanggil getStats
-        $this->dispatch('refreshStats');
     }
 
     public function resetDateFilter()

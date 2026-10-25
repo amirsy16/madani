@@ -45,13 +45,6 @@ class MetodePembayaranChart extends Widget
 
     protected static bool $isDiscovered = false;
 
-    protected function getListeners(): array
-    {
-        return [
-            'analisisFiltersUpdated' => 'onAnalisisFiltersUpdated',
-        ];
-    }
-
     public function mount(): void
     {
         $this->loadMetodePembayaranStats();
