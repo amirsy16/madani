@@ -263,12 +263,24 @@ class DonasiResource extends Resource
                         // validasi. Sebelumnya 0 lolos required lalu menjadi
                         // null saat dehydrasi (error 500), dan -1 lolos karena
                         // formatter client-side hanya mengubah tampilan.
-                        ->numeric()
-                        ->minValue(1000)
-                        ->validationMessages([
-                            'numeric' => 'Nominal donasi harus berupa angka.',
-                            'min' => 'Nominal donasi minimal Rp 1.000.',
-                        ])
+                        // Rule numeric bawaan menolak pemisah ribuan ("1.000.000")
+                        // yang dihasilkan formatStateUsing saat edit dan formatter
+                        // Alpine saat mengetik — normalisasi dulu, semantik sama
+                        // dengan dehydrateStateUsing di bawah.
+                        ->rule(fn (): \Closure => function (string $attribute, $value, \Closure $fail) {
+                            if (! filled($value)) {
+                                return; // kekosongan ditangani rule required
+                            }
+                            $angka = str_replace(['.', ','], ['', '.'], (string) $value);
+                            if (! is_numeric($angka)) {
+                                $fail('Nominal donasi harus berupa angka.');
+
+                                return;
+                            }
+                            if ((float) $angka < 1000) {
+                                $fail('Nominal donasi minimal Rp 1.000.');
+                            }
+                        })
                         ->dehydrateStateUsing(fn ($state) => filled($state) ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                         )
                         ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null
@@ -360,12 +372,23 @@ class DonasiResource extends Resource
                             'x-on:input' => '$event.target.value = formatNumber($event.target.value)',
                             'x-on:paste' => 'setTimeout(() => { $event.target.value = formatNumber($event.target.value) }, 10)',
                         ])
-                        ->numeric()
-                        ->minValue(0)
-                        ->validationMessages([
-                            'numeric' => 'Perkiraan nilai barang harus berupa angka.',
-                            'min' => 'Perkiraan nilai barang tidak boleh negatif.',
-                        ])
+                        // Sama seperti field jumlah: normalisasi pemisah ribuan
+                        // sebelum dicek numeric/min agar edit tanpa ketik ulang
+                        // tidak gagal validasi.
+                        ->rule(fn (): \Closure => function (string $attribute, $value, \Closure $fail) {
+                            if (! filled($value)) {
+                                return;
+                            }
+                            $angka = str_replace(['.', ','], ['', '.'], (string) $value);
+                            if (! is_numeric($angka)) {
+                                $fail('Perkiraan nilai barang harus berupa angka.');
+
+                                return;
+                            }
+                            if ((float) $angka < 0) {
+                                $fail('Perkiraan nilai barang tidak boleh negatif.');
+                            }
+                        })
                         ->visible(function (Get $get) {
                             $jenisDonasiId = $get('jenis_donasi_id');
                             if (! $jenisDonasiId) {
