@@ -19,6 +19,7 @@ Route::get('password/reset/{token}', [\App\Http\Controllers\Auth\NewPasswordCont
     ->name('password.reset');
 
 Route::post('password/reset', [\App\Http\Controllers\Auth\NewPasswordController::class, 'store'])
+    ->middleware('throttle:5,1')
     ->name('password.store');
 
 Route::get('password/reset', function () {

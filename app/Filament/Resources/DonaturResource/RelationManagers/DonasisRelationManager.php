@@ -182,8 +182,13 @@ class DonasisRelationManager extends RelationManager
                     ->label('Tanggal Donasi'),
 
                 FileUpload::make('bukti_pembayaran')
+                    // Konsisten dengan DonasiResource: simpan di disk
+                    // privat agar lolos otorisasi per-record (AK-04).
+                    ->disk('private')
+                    ->visibility('private')
                     ->directory('bukti-pembayaran')
                     ->image()
+                    ->maxSize(2048)
                     ->label('Bukti Pembayaran'),
 
                 Textarea::make('catatan_donatur')
@@ -349,7 +354,7 @@ class DonasisRelationManager extends RelationManager
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()->label('Ekspor Excel'),
+                    ExportBulkAction::make()->label('Ekspor Excel')->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user())),
                 ]),
             ])
             ->defaultSort('tanggal_donasi', 'desc');

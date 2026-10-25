@@ -948,7 +948,7 @@ class DonasiResource extends Resource
                                 $action->halt();
                             }
                         }),
-                    ExportBulkAction::make()->label('Ekspor Excel'),
+                    ExportBulkAction::make()->label('Ekspor Excel')->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user())),
                     // ... any other existing bulk actions ...
                 ]),
             ])

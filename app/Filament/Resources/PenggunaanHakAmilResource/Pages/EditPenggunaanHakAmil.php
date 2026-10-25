@@ -31,6 +31,10 @@ class EditPenggunaanHakAmil extends EditRecord
             ]);
         }
 
-        app(DanaService::class)->assertCukupHakAmil($jumlah, $this->record?->id);
+        // Sama seperti create: cek sisa di dalam transaksi berkunci (T1).
+        \Illuminate\Support\Facades\DB::transaction(function () use ($jumlah): void {
+            \App\Models\PenggunaanHakAmil::lockForUpdate()->get();
+            app(DanaService::class)->assertCukupHakAmil($jumlah, $this->record?->id);
+        });
     }
 }

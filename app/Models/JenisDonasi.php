@@ -4,10 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class JenisDonasi extends Model
 {
     use HasFactory;
+    use HasFactory, LogsActivity;
+
+    /**
+     * Jejak audit master keuangan: perubahan kolom ini menggeser angka
+     * laporan, wajib tercatat di Log Aktivitas (BG-06/AK-10).
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('jenis-donasi')
+            ->logOnlyDirty()
+            ->logAll();
+    }
 
     protected $fillable = [
         'nama',
@@ -73,11 +88,12 @@ class JenisDonasi extends Model
      */
     public function getKeteranganDanaNonHalalLengkapAttribute(): string
     {
-        if (!$this->mengandung_dana_non_halal) {
+        if (! $this->mengandung_dana_non_halal) {
             return 'Dana ini halal dan dapat disalurkan secara umum.';
         }
 
         $keterangan = $this->keterangan_dana_non_halal ?: 'Dana mengandung unsur non halal';
+
         return "⚠️ PERHATIAN: {$keterangan}. Dana ini harus disalurkan sesuai ketentuan syariah.";
     }
 

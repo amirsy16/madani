@@ -19,7 +19,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Maatwebsite\Excel\Facades\Excel;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class DonaturResource extends Resource
@@ -298,7 +297,7 @@ class DonaturResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()->label('Ekspor Excel'), // Dari pxlrbt/filament-excel
+                    ExportBulkAction::make()->label('Ekspor Excel'), // Dari pxlrbt/filament-exce->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user())),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

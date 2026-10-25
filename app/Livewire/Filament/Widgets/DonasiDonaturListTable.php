@@ -9,11 +9,10 @@ use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Livewire\Component;
 use Illuminate\Contracts\View\View;
+use Livewire\Component;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Carbon\Carbon;
 
 class DonasiDonaturListTable extends Component implements HasForms, HasTable
 {
@@ -21,9 +20,13 @@ class DonasiDonaturListTable extends Component implements HasForms, HasTable
     use InteractsWithTable;
 
     public $donaturId;
+
     public $currentPeriode = 'keseluruhan';
+
     public $customStartDate = null;
+
     public $customEndDate = null;
+
     public $currentJenisDonasi = null;
 
     public function mount($donaturId, $currentPeriode = 'keseluruhan', $customStartDate = null, $customEndDate = null, $currentJenisDonasi = null): void
@@ -41,15 +44,15 @@ class DonasiDonaturListTable extends Component implements HasForms, HasTable
             ->where('donatur_id', $this->donaturId)
             ->where('status_konfirmasi', 'verified')
             ->with(['jenisDonasi', 'metodePembayaran', 'fundraiser', 'dicatatOleh']);
-        
+
         // Apply jenis donasi filter
         if ($this->currentJenisDonasi) {
             $query->where('jenis_donasi_id', $this->currentJenisDonasi);
         }
-        
+
         // Apply period filter
         $query = $this->applyPeriodeFilter($query);
-        
+
         return $table
             ->query($query)
             ->columns([
@@ -134,45 +137,48 @@ class DonasiDonaturListTable extends Component implements HasForms, HasTable
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     ExportBulkAction::make()
+                        // Data PII donatur — hanya peran lengkap (AK-06).
+                        ->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user()))
                         ->exports([
                             ExcelExport::make()
                                 ->fromTable()
-                                ->withFilename(fn () => 'donasi-donatur-' . date('Y-m-d-H-i-s') . '.xlsx')
-                        ])
+                                ->withFilename(fn () => 'donasi-donatur-'.date('Y-m-d-H-i-s').'.xlsx'),
+                        ]),
                 ]),
             ])
             ->emptyStateHeading('Tidak ada donasi')
             ->emptyStateDescription('Belum ada donasi untuk donatur ini.')
             ->emptyStateIcon('heroicon-o-document-text');
     }
-    
+
     protected function applyPeriodeFilter($query)
     {
         switch ($this->currentPeriode) {
             case 'bulan_ini':
                 return $query->whereMonth('tanggal_donasi', now()->month)
-                            ->whereYear('tanggal_donasi', now()->year);
-                            
+                    ->whereYear('tanggal_donasi', now()->year);
+
             case 'bulan_lalu':
                 $bulanLalu = now()->subMonth();
+
                 return $query->whereMonth('tanggal_donasi', $bulanLalu->month)
-                            ->whereYear('tanggal_donasi', $bulanLalu->year);
-                            
+                    ->whereYear('tanggal_donasi', $bulanLalu->year);
+
             case 'tahun_ini':
                 return $query->whereYear('tanggal_donasi', now()->year);
-                
+
             case 'tahun_lalu':
                 return $query->whereYear('tanggal_donasi', now()->year - 1);
-                
+
             case '3_bulan':
                 return $query->where('tanggal_donasi', '>=', now()->subMonths(3));
-                
+
             case '6_bulan':
                 return $query->where('tanggal_donasi', '>=', now()->subMonths(6));
-                
+
             case '12_bulan':
                 return $query->where('tanggal_donasi', '>=', now()->subMonths(12));
-                
+
             case 'custom':
                 if ($this->customStartDate) {
                     $query->whereDate('tanggal_donasi', '>=', $this->customStartDate);
@@ -180,8 +186,9 @@ class DonasiDonaturListTable extends Component implements HasForms, HasTable
                 if ($this->customEndDate) {
                     $query->whereDate('tanggal_donasi', '<=', $this->customEndDate);
                 }
+
                 return $query;
-                
+
             case 'keseluruhan':
             default:
                 return $query; // Tidak ada filter tambahan

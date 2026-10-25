@@ -643,77 +643,84 @@ class LaporanPemasukan extends Page implements HasForms, HasTable
             return;
         }
 
-        // GUNAKAN getSummaryQuery() untuk RINGKASAN
-        // Query ini PERSIS SAMA dengan RingkasanStatistikUtama
-        // TIDAK terpengaruh filter user (jenis donasi, fundraiser, dll)
-        $query = $this->getSummaryQuery($startDate, $endDate);
-
+        // GUNAKAN getSummaryQuery() untuk RINGKASAN — query PERSIS SAMA
+        // dengan RingkasanStatistikUtama dan TIDAK terpengaruh filter user,
+        // sehingga hasilnya aman di-cache per rentang tanggal (T2: sebelumnya
+        // 13+ query agregat pada setiap perubahan filter).
         if ($isPreviousPeriod) {
-            // Previous period calculation
-            $this->totalPemasukanPrev = (clone $query)
-                ->whereHas('jenisDonasi', fn ($q) => $q->where('apakah_barang', false))
-                ->sum('jumlah');
-            $this->totalNilaiBarangPrev = (clone $query)
-                ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
-                ->where('jenis_donasis.apakah_barang', true)
-                ->sum(DB::raw('CASE WHEN donasis.perkiraan_nilai_barang IS NOT NULL AND donasis.perkiraan_nilai_barang > 0 THEN donasis.perkiraan_nilai_barang ELSE donasis.jumlah END'));
-            $this->grandTotalPemasukanPrev = (clone $query)
-                ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
-            $this->totalTransaksiPrev = (clone $query)->count();
-        } else {
-            // Current period - hitung semua breakdown
-            $this->totalPemasukan = (clone $query)
-                ->whereHas('jenisDonasi', fn ($q) => $q->where('apakah_barang', false))
-                ->sum('jumlah');
-            $this->totalNilaiBarang = (clone $query)
-                ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
-                ->where('jenis_donasis.apakah_barang', true)
-                ->sum(DB::raw('CASE WHEN donasis.perkiraan_nilai_barang IS NOT NULL AND donasis.perkiraan_nilai_barang > 0 THEN donasis.perkiraan_nilai_barang ELSE donasis.jumlah END'));
-            $this->grandTotalPemasukan = (clone $query)
-                ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
-            $this->totalTransaksi = (clone $query)->count();
+            $metrik = $this->metrikRingkasanTercache($startDate, $endDate, prev: true);
+            $this->totalPemasukanPrev = $metrik['total_pemasukan'];
+            $this->totalNilaiBarangPrev = $metrik['total_nilai_barang'];
+            $this->grandTotalPemasukanPrev = $metrik['grand_total'];
+            $this->totalTransaksiPrev = $metrik['total_transaksi'];
 
-            // Hitung total donatur unik
-            $this->totalDonatur = (clone $query)->distinct('donatur_id')->count('donatur_id');
-
-            // Breakdown per kategori donasi (TANPA filter user).
-            // Klasifikasi mengikuti RingkasanStatistikUtama: Zakat & CSR dari
-            // sumber dana, Infaq & Sedekah dari jenis donasi — sebelumnya Infaq
-            // dan Sedekah sama-sama memakai LIKE nama sumber "Dana Infaq/Sedekah"
-            // sehingga donasi yang sama terhitung dua kali.
-            $this->totalZakat = (clone $query)
-                ->whereHas('jenisDonasi', function ($q) {
-                    $q->whereHas('sumberDanaPenyaluran', function ($sq) {
-                        $sq->where('nama_sumber_dana', 'LIKE', '%zakat%');
-                    });
-                })
-                ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
-
-            $this->totalInfaq = (clone $query)
-                ->whereHas('jenisDonasi', function ($q) {
-                    $q->whereIn('nama', ['Infaq Terikat', 'Infaq Tidak Terikat']);
-                })
-                ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
-
-            $this->totalSedekah = (clone $query)
-                ->whereHas('jenisDonasi', function ($q) {
-                    $q->where('nama', 'Sedekah');
-                })
-                ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
-
-            $this->totalCSR = (clone $query)
-                ->whereHas('jenisDonasi', function ($q) {
-                    $q->whereHas('sumberDanaPenyaluran', function ($sq) {
-                        $sq->where('nama_sumber_dana', 'LIKE', '%csr%');
-                    });
-                })
-                ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
-
-            // Breakdown per status - semua sudah verified (karena menggunakan getSummaryQuery)
-            $this->transaksiVerified = $this->totalTransaksi;
-            $this->transaksiPending = 0;
-            $this->transaksiRejected = 0;
+            return;
         }
+
+        $metrik = $this->metrikRingkasanTercache($startDate, $endDate);
+        $this->totalPemasukan = $metrik['total_pemasukan'];
+        $this->totalNilaiBarang = $metrik['total_nilai_barang'];
+        $this->grandTotalPemasukan = $metrik['grand_total'];
+        $this->totalTransaksi = $metrik['total_transaksi'];
+        $this->totalDonatur = $metrik['total_donatur'];
+        $this->totalZakat = $metrik['total_zakat'];
+        $this->totalInfaq = $metrik['total_infaq'];
+        $this->totalSedekah = $metrik['total_sedekah'];
+        $this->totalCSR = $metrik['total_csr'];
+
+        // Breakdown per status — semuanya verified (memakai getSummaryQuery).
+        $this->transaksiVerified = $this->totalTransaksi;
+        $this->transaksiPending = 0;
+        $this->transaksiRejected = 0;
+    }
+
+    /**
+     * Metrik ringkasan periode dengan cache 10 menit per rentang tanggal.
+     *
+     * @return array<string, float|int>
+     */
+    private function metrikRingkasanTercache(string $startDate, string $endDate, bool $prev = false): array
+    {
+        return \App\Services\StatsCache::remember(
+            'laporan-pemasukan:'.$startDate.':'.$endDate.($prev ? ':prev' : ''),
+            function () use ($startDate, $endDate, $prev): array {
+                $query = $this->getSummaryQuery($startDate, $endDate);
+
+                $nilaiBarang = fn () => (float) (clone $query)
+                    ->join('jenis_donasis', 'donasis.jenis_donasi_id', '=', 'jenis_donasis.id')
+                    ->where('jenis_donasis.apakah_barang', true)
+                    ->sum(DB::raw('CASE WHEN donasis.perkiraan_nilai_barang IS NOT NULL AND donasis.perkiraan_nilai_barang > 0 THEN donasis.perkiraan_nilai_barang ELSE donasis.jumlah END'));
+
+                if ($prev) {
+                    return [
+                        'total_pemasukan' => (float) (clone $query)->whereHas('jenisDonasi', fn ($q) => $q->where('apakah_barang', false))->sum('jumlah'),
+                        'total_nilai_barang' => $nilaiBarang(),
+                        'grand_total' => (float) (clone $query)->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)')),
+                        'total_transaksi' => (clone $query)->count(),
+                    ];
+                }
+
+                return [
+                    'total_pemasukan' => (float) (clone $query)->whereHas('jenisDonasi', fn ($q) => $q->where('apakah_barang', false))->sum('jumlah'),
+                    'total_nilai_barang' => $nilaiBarang(),
+                    'grand_total' => (float) (clone $query)->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)')),
+                    'total_transaksi' => (clone $query)->count(),
+                    'total_donatur' => (clone $query)->distinct('donatur_id')->count('donatur_id'),
+                    'total_zakat' => (float) (clone $query)
+                        ->whereHas('jenisDonasi', fn ($q) => $q->whereHas('sumberDanaPenyaluran', fn ($sq) => $sq->where('nama_sumber_dana', 'LIKE', '%zakat%')))
+                        ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)')),
+                    'total_infaq' => (float) (clone $query)
+                        ->whereHas('jenisDonasi', fn ($q) => $q->whereIn('nama', ['Infaq Terikat', 'Infaq Tidak Terikat']))
+                        ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)')),
+                    'total_sedekah' => (float) (clone $query)
+                        ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', 'Sedekah'))
+                        ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)')),
+                    'total_csr' => (float) (clone $query)
+                        ->whereHas('jenisDonasi', fn ($q) => $q->whereHas('sumberDanaPenyaluran', fn ($sq) => $sq->where('nama_sumber_dana', 'LIKE', '%csr%')))
+                        ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)')),
+                ];
+            }
+        );
     }
 
     protected function calculatePercentageChanges(): void

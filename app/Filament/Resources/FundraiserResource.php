@@ -145,7 +145,7 @@ class FundraiserResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()->label('Ekspor Excel'),
+                    ExportBulkAction::make()->label('Ekspor Excel')->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user())),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

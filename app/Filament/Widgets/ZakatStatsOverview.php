@@ -4,17 +4,27 @@ namespace App\Filament\Widgets;
 
 use App\Models\Donasi;
 use App\Models\Donatur;
+use App\Services\StatsCache;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
-use App\Services\StatsCache;
 
 class ZakatStatsOverview extends BaseWidget
 {
+    /**
+     * Widget statistik lembaga & identitas donatur tidak untuk
+     * fundraiser (AK-05).
+     */
+    public static function canView(): bool
+    {
+        return \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user());
+    }
+
     protected static ?int $sort = 1;
-    protected int | string | array $columnSpan = 'full';
-    
+
+    protected int|string|array $columnSpan = 'full';
+
     // Menggunakan 5 kolom untuk menampilkan 5 statistik (1 baris x 5 kolom)
     protected function getColumns(): int
     {
@@ -39,13 +49,13 @@ class ZakatStatsOverview extends BaseWidget
         // --- 1. Total Donasi Keseluruhan ---
         // Exclude "Penyaluran Langsung" karena tidak masuk kas organisasi
         $totalDonasiKeseluruhan = Donasi::where('status_konfirmasi', 'verified')
-            ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
 
         // --- 2. Total Donasi Bulan Ini ---
         // Exclude "Penyaluran Langsung" untuk konsistensi
         $totalDonasiBulanIni = Donasi::where('status_konfirmasi', 'verified')
-            ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->whereMonth('tanggal_donasi', $currentMonth)
             ->whereYear('tanggal_donasi', $currentYear)
             ->sum(DB::raw('jumlah + IFNULL(perkiraan_nilai_barang, 0)'));
@@ -56,12 +66,12 @@ class ZakatStatsOverview extends BaseWidget
         // --- 4. Total Transaksi ---
         // Exclude "Penyaluran Langsung" untuk konsistensi
         $totalTransaksi = Donasi::where('status_konfirmasi', 'verified')
-            ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->count();
 
         // --- Nilai barang (bagian dari total donasi) ---
         $totalNilaiBarang = Donasi::where('status_konfirmasi', 'verified')
-            ->whereHas('jenisDonasi', fn($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
+            ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->sum(DB::raw('COALESCE(perkiraan_nilai_barang, 0)'));
 
         // --- 5. Hak Amil Bulan Ini ---
@@ -76,13 +86,13 @@ class ZakatStatsOverview extends BaseWidget
 
         return [
             // 1. Total Donasi Keseluruhan
-            Stat::make('Total Donasi', 'Rp ' . number_format($totalDonasiKeseluruhan, 0, ',', '.'))
-                ->description('Rp ' . number_format($totalNilaiBarang, 0, ',', '.') . ' nilai barang')
+            Stat::make('Total Donasi', 'Rp '.number_format($totalDonasiKeseluruhan, 0, ',', '.'))
+                ->description('Rp '.number_format($totalNilaiBarang, 0, ',', '.').' nilai barang')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
 
             // 2. Total Donasi Bulan Ini
-            Stat::make('Bulan Ini', 'Rp ' . number_format($totalDonasiBulanIni, 0, ',', '.'))
+            Stat::make('Bulan Ini', 'Rp '.number_format($totalDonasiBulanIni, 0, ',', '.'))
                 ->description(Carbon::now()->translatedFormat('F Y'))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('info'),
@@ -100,13 +110,10 @@ class ZakatStatsOverview extends BaseWidget
                 ->color('danger'),
 
             // 5. Hak Amil Bulan Ini
-            Stat::make('Hak Amil', 'Rp ' . number_format($hakAmilBulanIni, 0, ',', '.'))
+            Stat::make('Hak Amil', 'Rp '.number_format($hakAmilBulanIni, 0, ',', '.'))
                 ->description(Carbon::now()->translatedFormat('F Y'))
                 ->descriptionIcon('heroicon-m-calculator')
                 ->color('primary'),
         ];
     }
-
 }
-
-

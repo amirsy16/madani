@@ -22,6 +22,15 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TopDonaturWidget extends BaseWidget
 {
+    /**
+     * Widget statistik lembaga & identitas donatur tidak untuk
+     * fundraiser (AK-05).
+     */
+    public static function canView(): bool
+    {
+        return \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user());
+    }
+
     protected static ?string $heading = null;
 
     // protected int | string | array $columnSpan = 6;
@@ -544,6 +553,8 @@ class TopDonaturWidget extends BaseWidget
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     ExportBulkAction::make()
+                        // Data PII donatur — hanya peran lengkap (AK-06).
+                        ->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user()))
                         ->exports([
                             ExcelExport::make()
                                 ->fromTable()

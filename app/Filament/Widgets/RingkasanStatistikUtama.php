@@ -13,6 +13,15 @@ use Illuminate\Support\Facades\DB;
 
 class RingkasanStatistikUtama extends Widget
 {
+    /**
+     * Widget statistik lembaga & identitas donatur tidak untuk
+     * fundraiser (AK-05).
+     */
+    public static function canView(): bool
+    {
+        return \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user());
+    }
+
     protected $listeners = ['analisisFiltersUpdated' => 'onAnalisisFiltersUpdated'];
 
     protected static string $view = 'filament.widgets.ringkasan-statistik-utama';

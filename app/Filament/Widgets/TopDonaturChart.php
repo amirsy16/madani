@@ -13,6 +13,15 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class TopDonaturChart extends ApexChartWidget
 {
+    /**
+     * Widget statistik lembaga & identitas donatur tidak untuk
+     * fundraiser (AK-05).
+     */
+    public static function canView(): bool
+    {
+        return \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user());
+    }
+
     protected static ?string $chartId = 'topDonaturChart';
 
     protected static ?string $heading = 'Top 5 Donatur';

@@ -88,6 +88,11 @@ class LogAktivitas extends Page implements HasForms, HasTable
         'penerima_manfaat_lembaga', 'jumlah_penerima_manfaat', 'keterangan',
         // Penggunaan hak amil & user
         'tanggal', 'jenis_penggunaan_hak_amil_id',
+        // Master keuangan (BG-06/AK-10)
+        'nama_sumber_dana', 'persentase_hak_amil', 'aktif', 'nama_fundraiser',
+        'nomor_identitas', 'user_id', 'nama_kategori', 'kode', 'tipe',
+        'nomor_rekening', 'atas_nama_rekening', 'bank_name', 'apakah_barang',
+        'mengandung_dana_non_halal', 'membutuhkan_keterangan_tambahan',
     ];
 
     /**
@@ -169,6 +174,11 @@ class LogAktivitas extends Page implements HasForms, HasTable
                         'penyaluran' => 'Program Penyaluran',
                         'hak-amil' => 'Penggunaan Hak Amil',
                         'user' => 'Pengguna',
+                        'sumber-dana' => 'Sumber Dana Penyaluran',
+                        'metode-pembayaran' => 'Metode Pembayaran',
+                        'jenis-donasi' => 'Jenis Donasi',
+                        'fundraiser' => 'Fundraiser',
+                        'kategori-infaq' => 'Kategori Infaq Terikat',
                     ]),
                 Filter::make('created_at')
                     ->label('Rentang Waktu')
@@ -212,6 +222,11 @@ class LogAktivitas extends Page implements HasForms, HasTable
             'penyaluran' => 'Program Penyaluran',
             'hak-amil' => 'Penggunaan Hak Amil',
             'user' => 'Pengguna',
+            'sumber-dana' => 'Sumber Dana Penyaluran',
+            'metode-pembayaran' => 'Metode Pembayaran',
+            'jenis-donasi' => 'Jenis Donasi',
+            'fundraiser' => 'Fundraiser',
+            'kategori-infaq' => 'Kategori Infaq Terikat',
             default => ucfirst($logName),
         };
     }
@@ -388,6 +403,15 @@ class LogAktivitas extends Page implements HasForms, HasTable
             'penerima_manfaat_individu' => 'Penerima Manfaat (Individu)',
             'penerima_manfaat_lembaga' => 'Penerima Manfaat (Lembaga)',
             'jumlah_penerima_manfaat' => 'Jumlah Penerima Manfaat',
+            'nama_sumber_dana' => 'Nama Sumber Dana',
+            'persentase_hak_amil' => 'Persentase Hak Amil',
+            'aktif' => 'Status Aktif',
+            'nama_fundraiser' => 'Nama Fundraiser',
+            'nomor_identitas' => 'Nomor Identitas',
+            'user_id' => 'Pengguna',
+            'nama_kategori' => 'Nama Kategori',
+            'kode' => 'Kode',
+            'tipe' => 'Tipe',
         ];
 
         return $peta[$kolom] ?? ucwords(str_replace('_', ' ', $kolom));

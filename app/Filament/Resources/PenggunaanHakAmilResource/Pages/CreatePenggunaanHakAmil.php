@@ -28,6 +28,11 @@ class CreatePenggunaanHakAmil extends CreateRecord
             ]);
         }
 
-        app(DanaService::class)->assertCukupHakAmil($jumlah);
+        // Serialisasi pengecekan: kunci baris penggunaan hak amil dalam
+        // transaksi agar dua input bersamaan tidak melewati sisa (T1).
+        \Illuminate\Support\Facades\DB::transaction(function () use ($jumlah): void {
+            \App\Models\PenggunaanHakAmil::lockForUpdate()->get();
+            app(DanaService::class)->assertCukupHakAmil($jumlah);
+        });
     }
 }

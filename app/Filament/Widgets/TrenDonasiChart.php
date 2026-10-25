@@ -11,6 +11,15 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class TrenDonasiChart extends ApexChartWidget
 {
+    /**
+     * Widget statistik lembaga & identitas donatur tidak untuk
+     * fundraiser (AK-05).
+     */
+    public static function canView(): bool
+    {
+        return \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user());
+    }
+
     protected static ?string $chartId = 'trenDonasiChart';
 
     protected static ?string $heading = 'Tren Donasi';

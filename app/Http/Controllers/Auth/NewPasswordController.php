@@ -7,8 +7,8 @@ use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
@@ -38,10 +38,10 @@ class NewPasswordController extends Controller
 
         // Find the user
         $user = User::where('email', $request->email)->first();
-        
-        if (!$user) {
+
+        if (! $user) {
             return back()->withInput($request->only('email'))
-                        ->withErrors(['email' => 'User dengan email tersebut tidak ditemukan.']);
+                ->withErrors(['email' => 'Tautan reset tidak valid atau telah kedaluwarsa.']);
         }
 
         // Check if token exists and is valid
@@ -49,24 +49,24 @@ class NewPasswordController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        if (!$tokenData) {
+        if (! $tokenData) {
             return back()->withInput($request->only('email'))
-                        ->withErrors(['email' => 'Token reset password tidak ditemukan.']);
+                ->withErrors(['email' => 'Tautan reset tidak valid atau telah kedaluwarsa.']);
         }
 
         // Check if token matches (compare with SHA256 hash)
-        if (hash('sha256', $request->token) !== $tokenData->token) {
+        if (! hash_equals((string) $tokenData->token, hash('sha256', $request->token))) {
             return back()->withInput($request->only('email'))
-                        ->withErrors(['email' => 'Token reset password tidak valid.']);
+                ->withErrors(['email' => 'Tautan reset tidak valid atau telah kedaluwarsa.']);
         }
 
         // Check if token has expired (60 minutes)
         if (now()->diffInMinutes($tokenData->created_at) > 60) {
             // Delete expired token
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-            
+
             return back()->withInput($request->only('email'))
-                        ->withErrors(['email' => 'Token reset password telah kedaluwarsa.']);
+                ->withErrors(['email' => 'Tautan reset tidak valid atau telah kedaluwarsa.']);
         }
 
         // Reset the password
@@ -82,6 +82,6 @@ class NewPasswordController extends Controller
         event(new PasswordReset($user));
 
         return redirect()->route('filament.admin.auth.login')
-                        ->with('status', 'Password berhasil direset! Silakan login dengan password baru Anda.');
+            ->with('status', 'Password berhasil direset! Silakan login dengan password baru Anda.');
     }
 }
