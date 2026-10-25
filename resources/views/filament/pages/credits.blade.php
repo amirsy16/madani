@@ -53,12 +53,12 @@
                 <div class="flex items-center justify-center gap-2 mt-1">
                     <span class="text-slate-500 dark:text-slate-400 text-sm">LAZ Insan Madani</span>
                     <span class="text-slate-300 dark:text-slate-600">•</span>
-                    <span class="text-slate-400 dark:text-slate-500 text-sm font-medium">SIMADI v2.1</span>
+                    <span class="text-slate-400 dark:text-slate-500 text-sm font-medium">SIMADI v2.2</span>
                     <button
                         @click="showChangelog = true"
                         class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold cursor-pointer transition-all hover:scale-105"
                         style="background-color: #dbeafe; color: #1e40af;"
-                        title="Lihat perubahan v2.1"
+                        title="Lihat perubahan v2.2"
                     >
                         <x-heroicon-s-clipboard-document-list class="w-3 h-3" />
                         Apa yang baru?
@@ -105,12 +105,53 @@
                         </button>
                     </div>
 
-                    {{-- v2.1 --}}
+                    {{-- v2.2 --}}
                     <div class="p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: #800020; color: #ffffff;">v2.2</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500">26 Oktober 2026</span>
+                            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: #d1fae5; color: #065f46;">Terbaru</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="flex items-center gap-1.5 mb-2">
+                                <x-heroicon-s-sparkles class="w-4 h-4" style="color: #16a34a;" />
+                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #16a34a;">Yang Baru</span>
+                            </div>
+                            <ul class="space-y-2 pl-2">
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
+                                    <span><strong>Data referensi bisa dikelola sendiri</strong> — bidang program, asnaf, kategori dana non-halal, pekerjaan, dan jenis penggunaan hak amil kini dapat ditambah atau dinonaktifkan langsung dari menu, tanpa bantuan teknis.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#16a34a;"></span>
+                                    <span><strong>Bagian hak amil tampil di laporan layar</strong> — Laporan Perubahan Dana di layar kini juga menampilkan rincian hak amil, selaras dengan versi PDF-nya.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-2">
+                            <div class="flex items-center gap-1.5 mb-2">
+                                <x-heroicon-s-arrow-path class="w-4 h-4" style="color: #d97706;" />
+                                <span class="text-xs font-bold uppercase tracking-wide" style="color: #d97706;">Diperbarui</span>
+                            </div>
+                            <ul class="space-y-2 pl-2">
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Impor Excel lebih aman</strong> — bila ada satu baris yang bermasalah, seluruh impor dibatalkan dan barisnya diberitahukan; berkas yang sama tidak bisa memicu data ganda.</span>
+                                </li>
+                                <li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#d97706;"></span>
+                                    <span><strong>Batasan akses dan pengamanan lebih ketat</strong> — pengumpul dana hanya melihat donasi miliknya sendiri, percobaan masuk berlebihan dibatasi, dan berbagai pemeriksaan angka keuangan diperketat.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border-t border-slate-100 dark:border-slate-700">
                         <div class="flex items-center gap-2 mb-4">
                             <span class="px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: #800020; color: #ffffff;">v2.1</span>
                             <span class="text-xs text-slate-400 dark:text-slate-500">25 Oktober 2026</span>
-                            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold" style="background-color: #d1fae5; color: #065f46;">Terbaru</span>
                         </div>
 
                         <div class="mb-4">
