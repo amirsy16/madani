@@ -8,6 +8,7 @@ use App\Models\Donatur;
 use App\Models\Fundraiser;
 use App\Models\JenisDonasi;
 use App\Models\MetodePembayaran;
+use App\Support\ImporTransaksional;
 use Carbon\Carbon;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions;
@@ -27,6 +28,9 @@ class ListDonasis extends ListRecords
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->slideOver()
+                // Seluruh berkas diproses dalam SATU transaksi: satu baris
+                // gagal = semua dibatalkan, bukan impor setengah jalan (BG-01).
+                ->processCollectionUsing(fn (string $model, \Illuminate\Support\Collection $rows, array $dataTambahan = [], ?\Closure $mutator = null) => ImporTransaksional::proses($model, $rows, $dataTambahan, $mutator))
                 ->validateUsing([
                     'kode_donatur' => 'required|string',
                     'tanggal_donasi' => 'required',
@@ -98,8 +102,20 @@ class ListDonasis extends ListRecords
                         $data['donatur_id'] = null;
                     }
 
+                    // Deteksi baris kembar (BG-02): nomor transaksi selalu
+                    // dibuat baru, jadi tanpa cek ini berkas yang sama bisa
+                    // diimpor ulang dan angka keuangan menggelembung senyap.
+                    $duplikat = Donasi::where('donatur_id', $data['donatur_id'])
+                        ->where('jenis_donasi_id', $data['jenis_donasi_id'])
+                        ->where('tanggal_donasi', $data['tanggal_donasi'])
+                        ->whereRaw('COALESCE(jumlah, 0) = ?', [(float) ($data['jumlah'] ?? 0)])
+                        ->exists();
+                    if ($duplikat) {
+                        throw new \Exception('Donasi identik (donatur, tanggal, jenis, nominal sama) sudah tercatat — hapus baris kembar atau batasi rentang tanggal berkas');
+                    }
+
                     // Generate nomor transaksi
-                    $data['nomor_transaksi_unik'] = $this->generateNomorTransaksi();
+                    $data['nomor_transaksi_unik'] = Donasi::generateNomorTransaksiUnik();
 
                     // Set defaults
                     $data['status_konfirmasi'] = 'pending';
@@ -282,22 +298,5 @@ class ListDonasis extends ListRecords
         $value = strtolower(trim((string) $value));
 
         return in_array($value, ['true', 'yes', 'ya', '1', 'y']);
-    }
-
-    private function generateNomorTransaksi(): string
-    {
-        $prefix = 'TRX';
-        $date = now()->format('ymd');
-        $uniqueId = substr((string) (microtime(true) * 10000), -6);
-        $nomor = $prefix.$date.$uniqueId;
-
-        $attempts = 0;
-        while (Donasi::where('nomor_transaksi_unik', $nomor)->exists() && $attempts < 10) {
-            $uniqueId = mt_rand(100000, 999999);
-            $nomor = $prefix.$date.$uniqueId;
-            $attempts++;
-        }
-
-        return $nomor;
     }
 }

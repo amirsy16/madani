@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DonaturResource\Pages;
 use App\Filament\Resources\DonaturResource;
 use App\Models\Donatur;
 use App\Models\Pekerjaan;
+use App\Support\ImporTransaksional;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions;
 use Filament\Forms\Components\Actions\Action;
@@ -22,6 +23,8 @@ class ListDonaturs extends ListRecords
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->slideOver()
+                // Satu transaksi untuk seluruh berkas (BG-01).
+                ->processCollectionUsing(fn (string $model, \Illuminate\Support\Collection $rows, array $dataTambahan = [], ?\Closure $mutator = null) => ImporTransaksional::proses($model, $rows, $dataTambahan, $mutator))
                 ->validateUsing([
                     'gender' => 'required|in:male,female,organization',
                     'nama' => 'required|string|max:255',
@@ -31,6 +34,13 @@ class ListDonaturs extends ListRecords
                     'pekerjaan' => 'nullable|string|max:100',
                 ])
                 ->mutateAfterValidationUsing(function (array $data): array {
+                    // Nomor HP unik di basis data — tolak di awal dengan pesan
+                    // jelas, bukan error database di tengah proses (BG-03).
+                    if (! empty($data['nomor_hp'])
+                        && Donatur::where('nomor_hp', trim((string) $data['nomor_hp']))->exists()) {
+                        throw new \Exception("Nomor HP '{$data['nomor_hp']}' sudah terdaftar");
+                    }
+
                     // Generate kode donatur
                     $data['kode_donatur'] = Donatur::generateNewKodeDonatur();
 

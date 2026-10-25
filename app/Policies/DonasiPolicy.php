@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Donasi;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class DonasiPolicy
@@ -23,7 +23,17 @@ class DonasiPolicy
      */
     public function view(User $user, Donasi $donasi): bool
     {
-        return $user->can('view_donasi');
+        if (! $user->can('view_donasi')) {
+            return false;
+        }
+
+        // Fundraiser hanya boleh membuka donasi miliknya sendiri (AK-01).
+        if (! \App\Support\AksesPanel::lihatSemuaDonasi($user)) {
+            return $donasi->fundraiser_id !== null
+                && $donasi->fundraiser_id === \App\Support\AksesPanel::fundraiserIdUser($user);
+        }
+
+        return true;
     }
 
     /**

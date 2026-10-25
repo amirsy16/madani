@@ -8,6 +8,7 @@ use App\Models\BidangProgram;
 use App\Models\JenisDonasi;
 use App\Models\ProgramPenyaluran;
 use App\Models\SumberDanaPenyaluran;
+use App\Support\ImporTransaksional;
 use Carbon\Carbon;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions;
@@ -27,6 +28,8 @@ class ListProgramPenyalurans extends ListRecords
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->slideOver()
+                // Satu transaksi untuk seluruh berkas (BG-01).
+                ->processCollectionUsing(fn (string $model, \Illuminate\Support\Collection $rows, array $dataTambahan = [], ?\Closure $mutator = null) => ImporTransaksional::proses($model, $rows, $dataTambahan, $mutator))
                 ->validateUsing([
                     'tanggal_penyaluran' => 'required',
                     'nama_program' => 'required|string|max:255',
@@ -80,6 +83,16 @@ class ListProgramPenyalurans extends ListRecords
 
                     // Parse tanggal
                     $data['tanggal_penyaluran'] = $this->parseTanggal($data['tanggal_penyaluran']);
+
+                    // Deteksi baris kembar (BG-02): penyaluran identik yang
+                    // sudah tercatat menolak impor ulang berkas yang sama.
+                    $duplikat = ProgramPenyaluran::where('nama_program', trim((string) $data['nama_program']))
+                        ->where('tanggal_penyaluran', $data['tanggal_penyaluran'])
+                        ->where('jumlah_dana', (float) $data['jumlah_dana'])
+                        ->exists();
+                    if ($duplikat) {
+                        throw new \Exception("Program penyaluran '{$data['nama_program']}' dengan tanggal dan nominal sama sudah tercatat (duplikat impor)");
+                    }
 
                     // Generate kode program
                     $data['kode_program_penyaluran'] = $this->generateKodeProgram($data['tanggal_penyaluran']);

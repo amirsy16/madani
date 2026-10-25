@@ -202,7 +202,8 @@ class DonasisRelationManager extends RelationManager
                         'rejected' => 'Ditolak',
                     ])
                     ->default('pending')
-                    ->required(),
+                    ->required()
+                    ->visible(fn (string $operation): bool => $operation === 'edit' || (auth()->user()?->can('update_donasi') ?? false)),
 
                 Textarea::make('catatan_konfirmasi')
                     ->label('Catatan Konfirmasi Admin'),
@@ -224,6 +225,9 @@ class DonasisRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            // Fundraiser hanya melihat donasi miliknya di bawah donatur
+            // mana pun (AK-01) — konsisten dengan DonasiResource.
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => \App\Support\AksesPanel::terapkanScopeDonasi($query, auth()->user()))
             ->recordTitleAttribute('nomor_transaksi_unik')
             ->columns([
                 Tables\Columns\TextColumn::make('nomor_transaksi_unik')
@@ -321,7 +325,22 @@ class DonasisRelationManager extends RelationManager
                     ->options(['pending' => 'Menunggu Verifikasi', 'verified' => 'Terverifikasi', 'rejected' => 'Ditolak']),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    // Kolom ketertelusuran di-set server-side (AK-02/AK-03),
+                    // dan pembuat tanpa izin verifikasi selalu menghasilkan
+                    // donasi menunggu verifikasi (AK-07).
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['dicatat_oleh_user_id'] = auth()->id();
+                        $data['nomor_transaksi_unik'] = Donasi::generateNomorTransaksiUnik();
+
+                        if (! auth()->user()->can('update_donasi')) {
+                            $data['status_konfirmasi'] = 'pending';
+                            $data['dikofirmasi_oleh_user_id'] = null;
+                            $data['dikonfirmasi_pada'] = null;
+                        }
+
+                        return $data;
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

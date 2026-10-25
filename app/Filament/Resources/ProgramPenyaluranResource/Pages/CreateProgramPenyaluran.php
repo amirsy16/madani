@@ -46,4 +46,32 @@ class CreateProgramPenyaluran extends CreateRecord
             app(DanaService::class)->assertCukupSaldo($sumberDanaId, $jumlah);
         });
     }
+
+    /**
+     * Pencatat & kode program di-set server-side; nilai dari field Hidden
+     * klien tidak dipercaya (AK-02). Kode dibuat saat menyimpan dengan
+     * regenerasi otomatis — sebelumnya dihitung lastId+1 saat form dibuka
+     * sehingga dua petugas bersamaan menghasilkan kode sama (BG-04).
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['dicatat_oleh_id'] = auth()->id();
+        $data['kode_program_penyaluran'] = $this->generateKodeProgram();
+
+        return $data;
+    }
+
+    private function generateKodeProgram(): string
+    {
+        $prefix = 'PYL';
+        $date = now()->format('Ymd');
+        $lastId = (int) (ProgramPenyaluran::withTrashed()->max('id') ?? 0);
+
+        do {
+            $lastId++;
+            $kode = $prefix.$date.str_pad((string) $lastId, 4, '0', STR_PAD_LEFT);
+        } while (ProgramPenyaluran::withTrashed()->where('kode_program_penyaluran', $kode)->exists());
+
+        return $kode;
+    }
 }

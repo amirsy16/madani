@@ -32,6 +32,11 @@ class EditDonasi extends EditRecord
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        // Pencatat & nomor transaksi asli dipertahankan — nilai dari klien
+        // tidak dipercaya (temuan AK-03).
+        $data['dicatat_oleh_user_id'] = $this->record->dicatat_oleh_user_id;
+        $data['nomor_transaksi_unik'] = $this->record->nomor_transaksi_unik;
+
         $statusLama = $this->record->status_konfirmasi;
         $statusBaru = $data['status_konfirmasi'] ?? $statusLama;
 

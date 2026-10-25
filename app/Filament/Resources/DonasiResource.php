@@ -33,12 +33,24 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\HtmlString; // Pastikan model Donatur diimpor jika digunakan di URL
+use Illuminate\Support\Facades\HtmlString; // Pastikan model Donatur diimpor jika digunakan di URL
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction; // Changed from Filament\Pages\Actions\Action
 
 class DonasiResource extends Resource
 {
     protected static ?string $model = Donasi::class;
+
+    /**
+     * Fundraiser hanya melihat donasi yang ia kumpulkan sendiri; peran
+     * lainnya melihat seluruh donasi lembaga (temuan AK-01).
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return \App\Support\AksesPanel::terapkanScopeDonasi(
+            parent::getEloquentQuery(),
+            auth()->user(),
+        );
+    }
 
     // Konfigurasi navigasi
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
@@ -460,6 +472,10 @@ class DonasiResource extends Resource
                         ])
                         ->default('pending')
                         ->required()
+                        // Pembuat tanpa izin verifikasi tidak melihat pilihan
+                        // status saat create — donasi selalu masuk menunggu
+                        // verifikasi (AK-07; dipaksa lagi di server).
+                        ->visible(fn (string $operation): bool => $operation === 'edit' || (auth()->user()?->can('update_donasi') ?? false))
                         // Status terverifikasi adalah keadaan final: tidak boleh
                         // diputar balik lewat form (state machine pending → verified/rejected).
                         ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')

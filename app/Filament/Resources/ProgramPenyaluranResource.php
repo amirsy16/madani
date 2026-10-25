@@ -17,7 +17,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 class ProgramPenyaluranResource extends Resource
 {
@@ -212,18 +211,9 @@ class ProgramPenyaluranResource extends Resource
                         fn (Forms\Components\Actions\Action $action) => $action->label('Kembali')
                     ),
 
-                Forms\Components\Hidden::make('dicatat_oleh_id')
-                    ->default(Auth::id()),
-
-                Forms\Components\Hidden::make('kode_program_penyaluran')
-                    ->default(function () {
-                        $prefix = 'PYL';
-                        $date = now()->format('Ymd');
-                        $lastRecord = ProgramPenyaluran::latest('id')->first();
-                        $lastId = $lastRecord ? $lastRecord->id + 1 : 1;
-
-                        return $prefix.$date.str_pad($lastId, 4, '0', STR_PAD_LEFT);
-                    }),
+                // Pencatat & kode program dibuat server-side saat menyimpan
+                // (lihat CreateProgramPenyaluran::mutateFormDataBeforeCreate)
+                // — bukan lagi field Hidden yang bisa dimanipulasi klien.
             ]);
     }
 

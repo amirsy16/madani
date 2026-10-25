@@ -64,6 +64,27 @@ class Donasi extends Model
     }
 
     /**
+     * Nomor transaksi unik dibuat di server (dipakai form create, relation
+     * manager donatur, dan impor) — tidak boleh dipercaya dari klien.
+     */
+    public static function generateNomorTransaksiUnik(): string
+    {
+        $prefix = 'TRX';
+        $date = now()->format('ymd');
+        $uniqueId = substr((string) (microtime(true) * 10000), -6);
+        $nomor = $prefix.$date.$uniqueId;
+
+        $attempts = 0;
+        while (static::where('nomor_transaksi_unik', $nomor)->exists() && $attempts < 10) {
+            $uniqueId = mt_rand(100000, 999999);
+            $nomor = $prefix.$date.$uniqueId;
+            $attempts++;
+        }
+
+        return $nomor;
+    }
+
+    /**
      * Audit trail: setiap create/update/delete donasi tercatat
      * (pelaku, atribut yang berubah, waktu) di activity_log.
      */

@@ -58,4 +58,16 @@ class EditProgramPenyaluran extends EditRecord
             app(DanaService::class)->assertCukupSaldo($sumberDanaId, $jumlah, $jumlahLama);
         });
     }
+
+    /**
+     * Kode & pencatat asli dipertahankan — nilai dari klien tidak
+     * dipercaya (AK-02).
+     */
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['kode_program_penyaluran'] = $this->getRecord()->kode_program_penyaluran;
+        $data['dicatat_oleh_id'] = $this->getRecord()->dicatat_oleh_id;
+
+        return $data;
+    }
 }
