@@ -37,7 +37,8 @@ class PenggunaanHakAmilResource extends Resource
         return $form
             ->schema([
                 Forms\Components\DatePicker::make('tanggal')
-                    ->required(),
+                    ->required()
+                    ->maxDate(now()),
                 Forms\Components\Select::make('jenis_penggunaan_hak_amil_id')
                     ->relationship('jenisPenggunaanHakAmil', 'nama')
                     ->required(),
@@ -75,8 +76,8 @@ class PenggunaanHakAmilResource extends Resource
                 Tables\Columns\TextColumn::make('tanggal')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('jenisPenggunaanHakAmil.id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('jenisPenggunaanHakAmil.nama')
+                    ->label('Jenis Penggunaan')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('keterangan')
                     ->searchable(),

@@ -2,26 +2,28 @@
 
 namespace App\Livewire\Filament\Widgets;
 
-use App\Models\Donatur;
 use App\Models\Donasi;
+use App\Models\Donatur;
+use Carbon\Carbon;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Livewire\Component;
 use Illuminate\Contracts\View\View;
+use Livewire\Component;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Carbon\Carbon;
 
 class DonaturFundraiserTable extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
 
+    #[\Livewire\Attributes\Locked] // ID tak boleh diubah klien (AK-16)
     public $fundraiserId;
+
     public $timePeriod = 'all_time';
 
     public function mount($fundraiserId, $timePeriod = 'all_time'): void
@@ -61,7 +63,7 @@ class DonaturFundraiserTable extends Component implements HasForms, HasTable
             ->selectSub($donasiSubQuery('COUNT(*)'), 'total_donasi_count')
             ->selectSub($donasiSubQuery('SUM(COALESCE(jumlah, 0) + COALESCE(perkiraan_nilai_barang, 0))'), 'total_kontribusi')
             ->selectSub($donasiSubQuery('MAX(tanggal_donasi)'), 'donasi_terakhir');
-        
+
         return $table
             ->query($query)
             ->columns([
@@ -77,7 +79,7 @@ class DonaturFundraiserTable extends Component implements HasForms, HasTable
                     ->label('Nama Donatur')
                     ->searchable()
                     ->weight('medium')
-                    ->description(fn ($record) => match($record->gender) {
+                    ->description(fn ($record) => match ($record->gender) {
                         'male' => '♂ Laki-laki',
                         'female' => '♀ Perempuan',
                         default => '🏢 Organisasi',
@@ -86,7 +88,7 @@ class DonaturFundraiserTable extends Component implements HasForms, HasTable
                 Tables\Columns\TextColumn::make('nomor_hp')
                     ->label('No. HP')
                     ->searchable()
-                    ->url(fn ($record) => $record->nomor_hp ? 'https://wa.me/' . $record->nomor_hp : null)
+                    ->url(fn ($record) => $record->nomor_hp ? 'https://wa.me/'.$record->nomor_hp : null)
                     ->openUrlInNewTab()
                     ->color('success')
                     ->icon('heroicon-m-phone')
@@ -127,10 +129,10 @@ class DonaturFundraiserTable extends Component implements HasForms, HasTable
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('success')
                     ->tooltip('Hubungi via WhatsApp')
-                    ->url(fn ($record) => $record->nomor_hp ? 
-                        'https://wa.me/' . preg_replace('/[^0-9]/', '', $record->nomor_hp) : null)
+                    ->url(fn ($record) => $record->nomor_hp ?
+                        'https://wa.me/'.preg_replace('/[^0-9]/', '', $record->nomor_hp) : null)
                     ->openUrlInNewTab()
-                    ->visible(fn ($record) => !empty($record->nomor_hp)),
+                    ->visible(fn ($record) => ! empty($record->nomor_hp)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -138,36 +140,37 @@ class DonaturFundraiserTable extends Component implements HasForms, HasTable
                         ->exports([
                             ExcelExport::make()
                                 ->fromTable()
-                                ->withFilename(fn () => 'donatur-fundraiser-' . date('Y-m-d-H-i-s') . '.xlsx')
-                        ])
+                                ->withFilename(fn () => 'donatur-fundraiser-'.date('Y-m-d-H-i-s').'.xlsx'),
+                        ]),
                 ]),
             ])
             ->emptyStateHeading('Tidak ada donatur')
             ->emptyStateDescription('Belum ada donatur untuk fundraiser ini pada periode yang dipilih.')
             ->emptyStateIcon('heroicon-o-users');
     }
-    
+
     protected function applyTimePeriodFilterToQuery($query)
     {
         switch ($this->timePeriod) {
             case 'current_month':
                 return $query->whereMonth('tanggal_donasi', Carbon::now()->month)
-                            ->whereYear('tanggal_donasi', Carbon::now()->year);
-                            
+                    ->whereYear('tanggal_donasi', Carbon::now()->year);
+
             case 'last_month':
                 $lastMonth = Carbon::now()->subMonth();
+
                 return $query->whereMonth('tanggal_donasi', $lastMonth->month)
-                            ->whereYear('tanggal_donasi', $lastMonth->year);
-                            
+                    ->whereYear('tanggal_donasi', $lastMonth->year);
+
             case 'current_year':
                 return $query->whereYear('tanggal_donasi', Carbon::now()->year);
-                
+
             case 'last_3_months':
                 return $query->where('tanggal_donasi', '>=', Carbon::now()->subMonths(3));
-                
+
             case 'last_6_months':
                 return $query->where('tanggal_donasi', '>=', Carbon::now()->subMonths(6));
-                
+
             case 'all_time':
             default:
                 return $query;

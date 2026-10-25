@@ -719,14 +719,12 @@ class TopDonaturWidget extends BaseWidget
     {
         switch ($periode) {
             case 'bulan_ini':
-                return $query->whereMonth('donasis.tanggal_donasi', now()->month)
-                    ->whereYear('donasis.tanggal_donasi', now()->year);
+                return $query->whereBetween('donasis.tanggal_donasi', [now()->startOfMonth(), now()->endOfMonth()]);
 
             case 'bulan_lalu':
                 $bulanLalu = now()->subMonth();
 
-                return $query->whereMonth('donasis.tanggal_donasi', $bulanLalu->month)
-                    ->whereYear('donasis.tanggal_donasi', $bulanLalu->year);
+                return $query->whereBetween('donasis.tanggal_donasi', [$bulanLalu->copy()->startOfMonth(), $bulanLalu->copy()->endOfMonth()]);
 
             case 'tahun_ini':
                 return $query->whereYear('donasis.tanggal_donasi', now()->year);

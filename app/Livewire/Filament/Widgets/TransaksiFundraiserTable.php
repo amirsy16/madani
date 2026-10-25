@@ -3,24 +3,26 @@
 namespace App\Livewire\Filament\Widgets;
 
 use App\Models\Donasi;
+use Carbon\Carbon;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Livewire\Component;
 use Illuminate\Contracts\View\View;
+use Livewire\Component;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Carbon\Carbon;
 
 class TransaksiFundraiserTable extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
 
+    #[\Livewire\Attributes\Locked] // ID tak boleh diubah klien (AK-16)
     public $fundraiserId;
+
     public $timePeriod = 'all_time';
 
     public function mount($fundraiserId, $timePeriod = 'all_time'): void
@@ -35,10 +37,10 @@ class TransaksiFundraiserTable extends Component implements HasForms, HasTable
             ->where('fundraiser_id', $this->fundraiserId)
             ->where('status_konfirmasi', 'verified')
             ->with(['donatur', 'jenisDonasi', 'metodePembayaran']);
-        
+
         // Apply period filter
         $query = $this->applyTimePeriodFilter($query);
-        
+
         return $table
             ->query($query)
             ->columns([
@@ -106,36 +108,37 @@ class TransaksiFundraiserTable extends Component implements HasForms, HasTable
                         ->exports([
                             ExcelExport::make()
                                 ->fromTable()
-                                ->withFilename(fn () => 'transaksi-fundraiser-' . date('Y-m-d-H-i-s') . '.xlsx')
-                        ])
+                                ->withFilename(fn () => 'transaksi-fundraiser-'.date('Y-m-d-H-i-s').'.xlsx'),
+                        ]),
                 ]),
             ])
             ->emptyStateHeading('Tidak ada transaksi')
             ->emptyStateDescription('Belum ada transaksi untuk fundraiser ini pada periode yang dipilih.')
             ->emptyStateIcon('heroicon-o-document-text');
     }
-    
+
     protected function applyTimePeriodFilter($query)
     {
         switch ($this->timePeriod) {
             case 'current_month':
                 return $query->whereMonth('tanggal_donasi', Carbon::now()->month)
-                            ->whereYear('tanggal_donasi', Carbon::now()->year);
-                            
+                    ->whereYear('tanggal_donasi', Carbon::now()->year);
+
             case 'last_month':
                 $lastMonth = Carbon::now()->subMonth();
+
                 return $query->whereMonth('tanggal_donasi', $lastMonth->month)
-                            ->whereYear('tanggal_donasi', $lastMonth->year);
-                            
+                    ->whereYear('tanggal_donasi', $lastMonth->year);
+
             case 'current_year':
                 return $query->whereYear('tanggal_donasi', Carbon::now()->year);
-                
+
             case 'last_3_months':
                 return $query->where('tanggal_donasi', '>=', Carbon::now()->subMonths(3));
-                
+
             case 'last_6_months':
                 return $query->where('tanggal_donasi', '>=', Carbon::now()->subMonths(6));
-                
+
             case 'all_time':
             default:
                 return $query;

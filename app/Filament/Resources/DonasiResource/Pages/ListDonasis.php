@@ -24,6 +24,8 @@ class ListDonasis extends ListRecords
     {
         return [
             ExcelImportAction::make()
+                // Impor massal setara membuat data — wajib izin create (AK-17).
+                ->visible(fn (): bool => static::getResource()::canCreate())
                 ->label('Impor Donasi')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
@@ -94,6 +96,12 @@ class ListDonasis extends ListRecords
                     // validasi form); donasi barang dinilai dari perkiraan_nilai_barang.
                     if (! $jenisDonasi->apakah_barang && $data['jumlah'] < 1000) {
                         throw new \Exception("Jumlah donasi minimal Rp 1.000 untuk jenis donasi uang (kode donatur '{$donatur->kode_donatur}')");
+                    }
+
+                    // Donasi barang wajib bernilai — tanpa ini donasi bernilai
+                    // nol ikut menggelembungkan jumlah transaksi (BG-18).
+                    if ($jenisDonasi->apakah_barang && (float) ($data['perkiraan_nilai_barang'] ?? 0) < 1) {
+                        throw new \Exception("Donasi barang wajib memiliki perkiraan nilai minimal Rp 1 (kode donatur '{$donatur->kode_donatur}')");
                     }
 
                     // Donasi anonim tidak boleh tetap terhubung ke donatur —

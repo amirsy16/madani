@@ -234,15 +234,13 @@ class FundraiserPerformanceWidget extends BaseWidget
     {
         switch ($this->timePeriod) {
             case 'current_month':
-                $join->whereMonth('donasis.tanggal_donasi', Carbon::now()->month)
-                    ->whereYear('donasis.tanggal_donasi', Carbon::now()->year);
+                $join->whereBetween('donasis.tanggal_donasi', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()]);
                 break;
             case 'last_month':
-                $join->whereMonth('donasis.tanggal_donasi', Carbon::now()->subMonth()->month)
-                    ->whereYear('donasis.tanggal_donasi', Carbon::now()->subMonth()->year);
+                $join->whereBetween('donasis.tanggal_donasi', [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()]);
                 break;
             case 'current_year':
-                $join->whereYear('donasis.tanggal_donasi', Carbon::now()->year);
+                $join->whereBetween('donasis.tanggal_donasi', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()]);
                 break;
             case 'last_3_months':
                 $join->where('donasis.tanggal_donasi', '>=', Carbon::now()->subMonths(3));

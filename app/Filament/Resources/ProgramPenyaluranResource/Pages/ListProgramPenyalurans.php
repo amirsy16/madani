@@ -24,6 +24,8 @@ class ListProgramPenyalurans extends ListRecords
     {
         return [
             ExcelImportAction::make()
+                // Impor massal setara membuat data — wajib izin create (AK-17).
+                ->visible(fn (): bool => static::getResource()::canCreate())
                 ->label('Impor Penyaluran')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')

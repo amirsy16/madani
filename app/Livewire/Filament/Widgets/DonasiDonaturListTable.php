@@ -19,6 +19,7 @@ class DonasiDonaturListTable extends Component implements HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
+    #[\Livewire\Attributes\Locked] // ID tak boleh diubah klien (AK-16)
     public $donaturId;
 
     public $currentPeriode = 'keseluruhan';
@@ -155,20 +156,18 @@ class DonasiDonaturListTable extends Component implements HasForms, HasTable
     {
         switch ($this->currentPeriode) {
             case 'bulan_ini':
-                return $query->whereMonth('tanggal_donasi', now()->month)
-                    ->whereYear('tanggal_donasi', now()->year);
+                return $query->whereBetween('tanggal_donasi', [now()->startOfMonth(), now()->endOfMonth()]);
 
             case 'bulan_lalu':
                 $bulanLalu = now()->subMonth();
 
-                return $query->whereMonth('tanggal_donasi', $bulanLalu->month)
-                    ->whereYear('tanggal_donasi', $bulanLalu->year);
+                return $query->whereBetween('tanggal_donasi', [$bulanLalu->copy()->startOfMonth(), $bulanLalu->copy()->endOfMonth()]);
 
             case 'tahun_ini':
-                return $query->whereYear('tanggal_donasi', now()->year);
+                return $query->whereBetween('tanggal_donasi', [now()->startOfYear(), now()->endOfYear()]);
 
             case 'tahun_lalu':
-                return $query->whereYear('tanggal_donasi', now()->year - 1);
+                return $query->whereBetween('tanggal_donasi', [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()]);
 
             case '3_bulan':
                 return $query->where('tanggal_donasi', '>=', now()->subMonths(3));

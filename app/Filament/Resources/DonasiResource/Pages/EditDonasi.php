@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DonasiResource\Pages;
 use App\Filament\Resources\DonasiResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Validation\ValidationException;
 
 class EditDonasi extends EditRecord
 {
@@ -39,6 +40,14 @@ class EditDonasi extends EditRecord
 
         $statusLama = $this->record->status_konfirmasi;
         $statusBaru = $data['status_konfirmasi'] ?? $statusLama;
+
+        // Ditolak lalu diverifikasi wajib mencatat alasan (BG-14).
+        if ($statusLama === 'rejected' && $statusBaru === 'verified'
+            && blank($data['catatan_konfirmasi'] ?? null)) {
+            throw ValidationException::withMessages([
+                'catatan_konfirmasi' => 'Wajib mencatat alasan saat donasi yang ditolak diverifikasi.',
+            ]);
+        }
 
         if ($statusBaru !== $statusLama) {
             $data['dikofirmasi_oleh_user_id'] = $statusBaru === 'pending' ? null : auth()->id();

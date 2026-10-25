@@ -29,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Kebijakan kata sandi baru: minimal 10 karakter kombinasi huruf
+        // dan angka (AK-09 ringan; login akun lama tidak terpengaruh).
+        \Illuminate\Validation\Rules\Password::defaults(
+            fn () => \Illuminate\Validation\Rules\Password::min(10)->letters()->numbers()
+        );
+
         Table::configureUsing(function (Table $table): void {
             $table
                 ->paginationPageOptions([25, 50, 100, 250])

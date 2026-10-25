@@ -4,21 +4,19 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
-use App\Models\Donasi;
 use App\Notifications\CustomResetPassword;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
-use Filament\Tables\Actions\Action;
-use Filament\Notifications\Notification;
 
 class UserResource extends Resource
 {
@@ -26,17 +24,22 @@ class UserResource extends Resource
 
     // Improved navigation configuration
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+
     protected static ?string $navigationGroup = 'Administrator';
+
     protected static ?int $navigationSort = 1;
+
     protected static ?string $navigationLabel = 'Pengguna';
+
     protected static ?string $modelLabel = 'Pengguna';
+
     protected static ?string $pluralModelLabel = 'Pengguna';
-    
+
     public static function getSlug(): string
     {
         return 'pengguna';
     }
-    
+
     public static function getNavigationGroup(): ?string
     {
         return __('app.navigation.groups.administrator');
@@ -59,7 +62,7 @@ class UserResource extends Resource
                             ->placeholder('Masukkan nama lengkap pengguna')
                             ->readOnly(false) // Disable read-only for now
                             ->helperText('Nama lengkap pengguna'),
-                            
+
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->email()
@@ -70,7 +73,7 @@ class UserResource extends Resource
                             ->readOnly(false) // Disable read-only for now
                             ->helperText('Email ini akan digunakan untuk login'),
                     ]),
-                
+
                 // Authentication Section
                 Forms\Components\Section::make('Autentikasi')
                     ->description('Pengaturan kata sandi pengguna')
@@ -88,10 +91,10 @@ class UserResource extends Resource
                             ->hiddenOn('view')
                             ->placeholder(fn ($record) => $record ? '••••••••' : 'Masukkan kata sandi')
                             ->visible(true) // Show for all users for now
-                            ->helperText(fn ($record) => $record 
-                                ? 'Biarkan kosong jika tidak ingin mengubah kata sandi' 
+                            ->helperText(fn ($record) => $record
+                                ? 'Biarkan kosong jika tidak ingin mengubah kata sandi'
                                 : 'Minimal 8 karakter'),
-                            
+
                         Forms\Components\TextInput::make('password_confirmation')
                             ->label('Konfirmasi Kata Sandi')
                             ->password()
@@ -101,7 +104,7 @@ class UserResource extends Resource
                             ->hiddenOn(['view', 'edit'])
                             ->visible(true), // Show for all users for now
                     ]),
-                
+
                 // Permissions Section
                 Forms\Components\Section::make('Hak Akses')
                     ->description('Pengaturan peran dan izin pengguna')
@@ -109,14 +112,16 @@ class UserResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('roles')
                             ->label('Peran')
-                            ->relationship('roles', 'name')
+                            // Hanya super_admin boleh membagikan peran
+                            // super_admin (AK-11).
+                            ->relationship('roles', 'name', fn (\Illuminate\Database\Eloquent\Builder $query) => auth()->user()->hasRole('super_admin') ? $query : $query->where('name', '!=', 'super_admin'))
                             ->multiple()
                             ->preload()
                             ->searchable()
                             ->helperText('Pilih satu atau lebih peran untuk pengguna ini')
                             ->columnSpanFull(),
                     ]),
-                
+
                 // Additional Information Section (can be expanded later)
                 Forms\Components\Section::make('Informasi Tambahan')
                     ->description('Data tambahan pengguna')
@@ -126,7 +131,7 @@ class UserResource extends Resource
                             ->label('Dibuat Pada')
                             ->content(fn (?User $record): string => $record?->created_at?->diffForHumans() ?? '-')
                             ->visible(fn (?User $record) => $record !== null),
-                            
+
                         Forms\Components\Placeholder::make('updated_at')
                             ->label('Diperbarui Pada')
                             ->content(fn (?User $record): string => $record?->updated_at?->diffForHumans() ?? '-')
@@ -145,26 +150,26 @@ class UserResource extends Resource
                     ->label('Nama')
                     ->searchable()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
                     ->sortable()
                     ->icon('heroicon-m-envelope'),
-                    
+
                 Tables\Columns\TextColumn::make('roles.name')
                     ->label('Peran')
                     ->badge()
                     ->color('primary')
                     ->searchable()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tgl Dibuat')
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                    
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Tgl Diperbarui')
                     ->dateTime('d M Y H:i')
@@ -182,7 +187,7 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                
+
                 // Send Password Reset Email Action for Super Admin
                 Action::make('sendPasswordReset')
                     ->label('Kirim Tautan Reset')
@@ -190,15 +195,14 @@ class UserResource extends Resource
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Kirim Tautan Reset Password')
-                    ->modalDescription(fn (User $record) => 
-                        "Apakah Anda yakin ingin mengirim tautan reset password ke email '{$record->email}'? " .
-                        "Pengguna akan menerima email berisi tautan aman untuk mereset password mereka."
+                    ->modalDescription(fn (User $record) => "Apakah Anda yakin ingin mengirim tautan reset password ke email '{$record->email}'? ".
+                        'Pengguna akan menerima email berisi tautan aman untuk mereset password mereka.'
                     )
                     ->modalSubmitActionLabel('Ya, Kirim Email')
                     ->action(function (User $record) {
                         // Generate password reset token manually to use our custom notification
                         $token = Str::random(64);
-                        
+
                         // Store the token in password_reset_tokens table using Laravel's expected format
                         DB::table('password_reset_tokens')->updateOrInsert(
                             ['email' => $record->email],
@@ -208,11 +212,11 @@ class UserResource extends Resource
                                 'created_at' => now(),
                             ]
                         );
-                        
+
                         try {
                             // Send our custom notification
                             $record->notify(new CustomResetPassword($token));
-                            
+
                             Notification::make()
                                 ->title('Email reset password berhasil dikirim')
                                 ->body("Tautan reset password telah dikirim ke {$record->email}. Pengguna dapat menggunakan tautan tersebut untuk mengatur password baru.")
@@ -227,10 +231,11 @@ class UserResource extends Resource
                         }
                     })
                     ->visible(function (User $record) {
-                        // Show reset button for all users except current user
-                        return Auth::id() !== $record->id;
+                        // Bukan diri sendiri DAN punya izin ubah akun (AK-12).
+                        return Auth::id() !== $record->id
+                            && auth()->user()->can('update_user');
                     }),
-                    
+
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -257,8 +262,3 @@ class UserResource extends Resource
         ];
     }
 }
-
-
-
-
-

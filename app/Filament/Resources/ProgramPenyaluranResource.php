@@ -55,7 +55,8 @@ class ProgramPenyaluranResource extends Resource
                                 ->columnSpanFull(),
                             Forms\Components\DatePicker::make('tanggal_penyaluran')
                                 ->required()
-                                ->default(now()),
+                                ->default(now())
+                                ->maxDate(now()),
                             Forms\Components\Textarea::make('lokasi_penyaluran')
                                 ->required()
                                 ->columnSpanFull(),

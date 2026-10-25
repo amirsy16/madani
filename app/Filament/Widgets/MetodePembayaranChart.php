@@ -27,7 +27,9 @@ class MetodePembayaranChart extends Widget
         return 'text-center text-2xl font-bold';
     }
 
-    public ?string $filter = 'bulan_ini';
+    // Default sejajar kartu ringkasan agar angka antar widget tidak
+    // tampak bertentangan saat halaman dibuka (BG-12, ringan).
+    public ?string $filter = 'keseluruhan';
 
     public ?string $selectedMetode = null;
 
@@ -154,14 +156,17 @@ class MetodePembayaranChart extends Widget
         }
 
         $query = Donasi::query()
-            ->join('metode_pembayarans', 'donasis.metode_pembayaran_id', '=', 'metode_pembayarans.id')
+            // leftJoin + kategori "(Tanpa Metode)": donasi tanpa metode
+            // (kolom nullable) tetap tampil agar total chart = total
+            // pemasukan di kartu ringkasan (BG-16).
+            ->leftJoin('metode_pembayarans', 'donasis.metode_pembayaran_id', '=', 'metode_pembayarans.id')
             ->where('donasis.status_konfirmasi', 'verified')
             // Paritas dengan kartu statistik: Penyaluran Langsung tidak masuk
             // kas organisasi.
             ->whereHas('jenisDonasi', fn ($q) => $q->where('nama', '!=', 'Penyaluran Langsung'))
             ->select(
-                'metode_pembayarans.id as metode_id',
-                'metode_pembayarans.nama as nama_metode',
+                DB::raw('COALESCE(donasis.metode_pembayaran_id, 0) as metode_id'),
+                DB::raw("COALESCE(metode_pembayarans.nama, '(Tanpa Metode)') as nama_metode"),
                 DB::raw('COUNT(donasis.id) as jumlah_transaksi'),
                 DB::raw('SUM(donasis.jumlah + IFNULL(donasis.perkiraan_nilai_barang, 0)) as total_nominal')
             );
@@ -171,7 +176,7 @@ class MetodePembayaranChart extends Widget
         }
 
         $this->metodePembayaranStats = $query
-            ->groupBy('metode_pembayarans.id', 'metode_pembayarans.nama')
+            ->groupBy(DB::raw('COALESCE(donasis.metode_pembayaran_id, 0)'), 'metode_pembayarans.nama')
             ->orderBy('total_nominal', 'desc')
             ->get()
             ->map(function ($item) use ($startDate, $endDate) {
