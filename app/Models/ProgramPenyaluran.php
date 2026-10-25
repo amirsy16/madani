@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ProgramPenyaluran extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'kode_program_penyaluran',
@@ -80,6 +82,23 @@ class ProgramPenyaluran extends Model
     }
 
     /**
+     * Audit trail: pencatatan pelaku & waktu untuk create/update/delete penyaluran.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('penyaluran')
+            ->logOnlyDirty()
+            ->logAll()
+            ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
+                'created' => 'menambahkan',
+                'updated' => 'memperbarui',
+                'deleted' => 'menghapus',
+                default => $eventName,
+            });
+    }
+
+    /**
      * Accessor untuk mendapatkan nama penerima manfaat
      * Prioritas: individu > lembaga > 'N/A'
      */
@@ -88,11 +107,11 @@ class ProgramPenyaluran extends Model
         if ($this->penerima_manfaat_individu) {
             return $this->penerima_manfaat_individu;
         }
-        
+
         if ($this->penerima_manfaat_lembaga) {
             return $this->penerima_manfaat_lembaga;
         }
-        
+
         return 'N/A';
     }
 
@@ -104,11 +123,11 @@ class ProgramPenyaluran extends Model
         if ($this->penerima_manfaat_individu) {
             return 'individu';
         }
-        
+
         if ($this->penerima_manfaat_lembaga) {
             return 'lembaga';
         }
-        
+
         return 'unknown';
     }
 

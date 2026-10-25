@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Activity;
 use App\Models\Donasi;
 use App\Models\Donatur;
 use App\Models\JenisDonasi;
@@ -37,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
         foreach ([Donasi::class, Donatur::class, ProgramPenyaluran::class, PenggunaanHakAmil::class, JenisDonasi::class, SumberDanaPenyaluran::class] as $model) {
             $model::observe(InvalidatesStatsCache::class);
         }
+
+        // Setiap activity yang lahir dari request web menyimpan IP & user-agent
+        // di properties untuk keperluan audit keamanan (halaman Log Aktivitas).
+        Activity::creating(function (Activity $activity): void {
+            if (app()->runningInConsole()) {
+                return;
+            }
+
+            $activity->properties = collect($activity->properties ?? [])->merge([
+                'ip_address' => request()->ip(),
+                'user_agent' => mb_substr((string) request()->userAgent(), 0, 255),
+            ]);
+        });
         // if(config('app.env') === 'local')
         // {
         //     URL::forceScheme('https');

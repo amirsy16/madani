@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Donatur extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'kode_donatur', 'gender', 'nama', 'alamat_detail', 'alamat_lengkap',
@@ -137,6 +139,23 @@ class Donatur extends Model
         static::saving(function ($donatur) {
             $donatur->alamat_lengkap = $donatur->generateFullAddress();
         });
+    }
+
+    /**
+     * Audit trail: pencatatan pelaku & waktu untuk create/update/delete donatur.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('donatur')
+            ->logOnlyDirty()
+            ->logAll()
+            ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
+                'created' => 'menambahkan',
+                'updated' => 'memperbarui',
+                'deleted' => 'menghapus',
+                default => $eventName,
+            });
     }
 
     // Method to generate full address

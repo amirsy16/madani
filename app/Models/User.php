@@ -3,19 +3,20 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\CustomResetPassword;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
-use App\Notifications\CustomResetPassword;
-
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, HasRoles, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, LogsActivity, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -78,8 +79,22 @@ class User extends Authenticatable implements FilamentUser
     {
         $this->notify(new CustomResetPassword($token));
     }
+
+    /**
+     * Audit trail akun: hanya name & email yang dicatat — password/hash
+     * sengaja dikecualikan agar tidak bocor di activity_log.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user')
+            ->logOnlyDirty()
+            ->logOnly(['name', 'email'])
+            ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
+                'created' => 'menambahkan',
+                'updated' => 'memperbarui',
+                'deleted' => 'menghapus',
+                default => $eventName,
+            });
+    }
 }
-
-
-
-

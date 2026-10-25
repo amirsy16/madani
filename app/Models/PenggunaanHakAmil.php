@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo; // Tambahkan ini
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class PenggunaanHakAmil extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'tanggal',
@@ -31,5 +33,22 @@ class PenggunaanHakAmil extends Model
     public function jenisPenggunaanHakAmil(): BelongsTo // Relasi ke master data
     {
         return $this->belongsTo(JenisPenggunaanHakAmil::class);
+    }
+
+    /**
+     * Audit trail: pencatatan pelaku & waktu untuk create/update/delete penggunaan hak amil.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('hak-amil')
+            ->logOnlyDirty()
+            ->logAll()
+            ->setDescriptionForEvent(fn (string $eventName): string => match ($eventName) {
+                'created' => 'menambahkan',
+                'updated' => 'memperbarui',
+                'deleted' => 'menghapus',
+                default => $eventName,
+            });
     }
 }
