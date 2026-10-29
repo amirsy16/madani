@@ -36,7 +36,7 @@
 
                     <h2 class="mt-8 text-3xl font-bold tracking-tight text-white">
                         SIMADI
-                        <span class="ml-1 align-middle text-[11px] font-semibold uppercase tracking-widest text-amber-300/90">v2.1</span>
+                        <span class="ml-1 align-middle text-[11px] font-semibold uppercase tracking-widest text-amber-300/90">{{ config('app.version') }}</span>
                     </h2>
                     <p class="mt-2 max-w-xs text-sm leading-relaxed text-white/70">
                         Sistem Informasi Pengelolaan Dana Zakat, Infaq &amp; Sedekah — LAZ Insan Madani.
@@ -94,7 +94,7 @@
                     >
                         Lupa kata sandi?
                     </a>
-                    <span class="text-gray-400 dark:text-gray-500">SIMADI v2.1 &middot; LAZ Insan Madani</span>
+                    <span class="text-gray-400 dark:text-gray-500">SIMADI {{ config('app.version') }} &middot; LAZ Insan Madani</span>
                 </div>
             </div>
 
