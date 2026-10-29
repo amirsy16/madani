@@ -547,7 +547,7 @@ class DonasiResource extends Resource
 
             // Hidden fields for system tracking
             TextInput::make('nomor_transaksi_unik')
-                ->default(fn () => 'TRX'.strtoupper(uniqid()))
+                ->default(fn () => \App\Models\Donasi::generateNomorTransaksiUnik())
                 ->dehydrated()
                 ->required()
                 ->unique(Donasi::class, 'nomor_transaksi_unik', ignoreRecord: true)

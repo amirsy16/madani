@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -66,22 +69,28 @@ class Donasi extends Model
     /**
      * Nomor transaksi unik dibuat di server (dipakai form create, relation
      * manager donatur, dan impor) — tidak boleh dipercaya dari klien.
+     *
+     * Format mengikuti nomor urut warisan LAZ: angka 6 digit ber-nol di
+     * depan (001454, 001455, ...) yang melanjutkan nomor terbesar yang
+     * sudah ada; nomor lama berformat TRX diabaikan otomatis (cast ke
+     * angka bernilai 0).
      */
     public static function generateNomorTransaksiUnik(): string
     {
-        $prefix = 'TRX';
-        $date = now()->format('ymd');
-        $uniqueId = substr((string) (microtime(true) * 10000), -6);
-        $nomor = $prefix.$date.$uniqueId;
-
-        $attempts = 0;
-        while (static::where('nomor_transaksi_unik', $nomor)->exists() && $attempts < 10) {
-            $uniqueId = mt_rand(100000, 999999);
-            $nomor = $prefix.$date.$uniqueId;
-            $attempts++;
+        // Kunci sementara mencegah dua petugas mendapat nomor sama
+        // secara bersamaan; indeks unik basis data menjadi pengaman akhir.
+        try {
+            return Cache::lock('donasi:nomor-transaksi', 10)->block(5, fn () => static::nomorBerikutnya());
+        } catch (LockTimeoutException) {
+            return static::nomorBerikutnya();
         }
+    }
 
-        return $nomor;
+    private static function nomorBerikutnya(): string
+    {
+        $terbesar = (int) static::query()->max(DB::raw('CAST(nomor_transaksi_unik AS UNSIGNED)'));
+
+        return str_pad((string) ($terbesar + 1), 6, '0', STR_PAD_LEFT);
     }
 
     /**

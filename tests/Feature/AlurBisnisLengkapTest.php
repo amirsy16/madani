@@ -236,7 +236,7 @@ class AlurBisnisLengkapTest extends TestCase
 
         $donasi = Donasi::where('donatur_id', $donatur->id)->firstOrFail();
         $this->assertSame('verified', $donasi->status_konfirmasi);
-        $this->assertStringStartsWith('TRX', $donasi->nomor_transaksi_unik);
+        $this->assertMatchesRegularExpression('/^[0-9]{6}$/', $donasi->nomor_transaksi_unik);
         $this->assertSame(1000000.0, (float) $donasi->jumlah);
         $this->assertSame(Auth::id(), $donasi->dicatat_oleh_user_id);
     }
@@ -289,6 +289,23 @@ class AlurBisnisLengkapTest extends TestCase
             'atas_nama_hamba_allah' => true,
             'jumlah' => 1000000,
         ]);
+    }
+
+    public function test_nomor_transaksi_baru_melanjutkan_nomor_urut_warisan(): void
+    {
+        // Basis data produksi memakai nomor urut warisan LAZ (001451, 001452,
+        // ...). Donasi baru harus melanjutkan urutan itu, bukan format TRX.
+        [, $donatur, $jenis, $metode] = $this->siapkanRantaiBisnis();
+        Donasi::factory()->create([
+            'nomor_transaksi_unik' => '001453',
+            'donatur_id' => $donatur->id,
+            'jenis_donasi_id' => $jenis->id,
+        ]);
+
+        $this->isiFormDonasi($donatur, $jenis, $metode)->assertHasNoFormErrors();
+
+        $terakhir = Donasi::query()->orderByDesc('id')->first();
+        $this->assertSame('001454', $terakhir->nomor_transaksi_unik);
     }
 
     public function test_duplikat_nomor_transaksi_ditolak(): void
