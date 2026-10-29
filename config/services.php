@@ -58,4 +58,13 @@ return [
         'email' => env('WEB3FORMS_EMAIL'),
     ],
 
+    // Fonnte — gateway WhatsApp untuk notifikasi operasional (donasi baru,
+    // login panel, error 500). Token = device token dari fonnte.com,
+    // target = nomor penerima format 62….
+    'fonnte' => [
+        'token' => env('FONNTE_TOKEN'),
+        'target' => env('WA_NOTIF_TARGET'),
+        'enabled' => env('WA_NOTIF_ENABLED', true),
+    ],
+
 ];

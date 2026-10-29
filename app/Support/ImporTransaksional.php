@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Services\NotifikasiWa;
 use EightyNine\ExcelImport\Exceptions\ImportStoppedException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -33,38 +34,46 @@ class ImporTransaksional
      */
     public static function proses(string $model, Collection $baris, array $dataTambahan = [], ?\Closure $mutator = null): Collection
     {
-        DB::transaction(function () use ($model, $baris, $dataTambahan, $mutator): void {
-            $kegagalan = [];
+        // Impor massal tidak memicu notifikasi WA per baris (keputusan ops):
+        // selama proses berlangsung, pengiriman ditahan (NotifikasiDonasiBaru).
+        NotifikasiWa::$ditahan = true;
 
-            foreach ($baris as $indeks => $barisData) {
-                // Baris 1 Excel berisi judul kolom, data dimulai baris 2.
-                $nomorBaris = $indeks + 2;
+        try {
+            DB::transaction(function () use ($model, $baris, $dataTambahan, $mutator): void {
+                $kegagalan = [];
 
-                try {
-                    $data = $barisData->toArray();
-                    if ($dataTambahan !== []) {
-                        $data = array_merge($data, $dataTambahan);
+                foreach ($baris as $indeks => $barisData) {
+                    // Baris 1 Excel berisi judul kolom, data dimulai baris 2.
+                    $nomorBaris = $indeks + 2;
+
+                    try {
+                        $data = $barisData->toArray();
+                        if ($dataTambahan !== []) {
+                            $data = array_merge($data, $dataTambahan);
+                        }
+                        if ($mutator !== null) {
+                            $data = $mutator($data);
+                        }
+                        $model::create($data);
+                    } catch (Throwable $e) {
+                        $kegagalan[] = "Baris {$nomorBaris}: {$e->getMessage()}";
                     }
-                    if ($mutator !== null) {
-                        $data = $mutator($data);
+                }
+
+                if ($kegagalan !== []) {
+                    $ringkasan = implode("\n", array_slice($kegagalan, 0, self::BATAS_TAMPIL));
+                    if (count($kegagalan) > self::BATAS_TAMPIL) {
+                        $ringkasan .= "\n... dan ".(count($kegagalan) - self::BATAS_TAMPIL).' baris lainnya.';
                     }
-                    $model::create($data);
-                } catch (Throwable $e) {
-                    $kegagalan[] = "Baris {$nomorBaris}: {$e->getMessage()}";
-                }
-            }
 
-            if ($kegagalan !== []) {
-                $ringkasan = implode("\n", array_slice($kegagalan, 0, self::BATAS_TAMPIL));
-                if (count($kegagalan) > self::BATAS_TAMPIL) {
-                    $ringkasan .= "\n... dan ".(count($kegagalan) - self::BATAS_TAMPIL).' baris lainnya.';
+                    throw new ImportStoppedException(
+                        count($kegagalan).' dari '.count($baris)." baris gagal diproses — tidak ada data yang disimpan. Perbaiki berkas lalu impor ulang:\n\n".$ringkasan
+                    );
                 }
-
-                throw new ImportStoppedException(
-                    count($kegagalan).' dari '.count($baris)." baris gagal diproses — tidak ada data yang disimpan. Perbaiki berkas lalu impor ulang:\n\n".$ringkasan
-                );
-            }
-        });
+            });
+        } finally {
+            NotifikasiWa::$ditahan = false;
+        }
 
         return $baris;
     }
