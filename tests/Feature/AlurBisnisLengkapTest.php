@@ -28,7 +28,8 @@ use Tests\TestCase;
 
 /**
  * Uji fungsional alur bisnis lengkap SIMADI dari ujung ke ujung:
- * master data -> input donasi (pending) -> verifikasi -> penyaluran dana
+ * master data -> input donasi (bawaan: terverifikasi) -> pemeriksaan ulang
+ * lewat edit -> penyaluran dana
  * -> penggunaan hak amil -> laporan (pemasukan & perubahan dana) -> PDF.
  *
  * Angka uji dibuat bulat agar aritmetika keuangan bisa diperiksa eksak:
@@ -145,12 +146,13 @@ class AlurBisnisLengkapTest extends TestCase
             ->assertHasNoFormErrors();
         $this->assertDatabaseHas('donaturs', ['nama' => 'Budi Uji Alur', 'gender' => 'male']);
 
-        // 2. Input donasi Rp 1.000.000 -> pending.
+        // 2. Input donasi Rp 1.000.000 -> tersimpan terverifikasi (bawaan).
         $this->isiFormDonasi($donatur, $jenis, $metode)->assertHasNoFormErrors();
         $donasi = Donasi::where('donatur_id', $donatur->id)->firstOrFail();
-        $this->assertSame('pending', $donasi->status_konfirmasi);
+        $this->assertSame('verified', $donasi->status_konfirmasi);
 
-        // 3. Verifikasi donasi lewat form edit: konfirmator & waktu tercatat.
+        // 3. Pemeriksaan ulang lewat form edit tetap berjalan pada donasi
+        // terverifikasi dan konfirmator tetap tercatat.
         Livewire::test(EditDonasi::class, ['record' => $donasi->getRouteKey()])
             ->fillForm([
                 'status_konfirmasi' => 'verified',
@@ -226,14 +228,14 @@ class AlurBisnisLengkapTest extends TestCase
         $this->assertDatabaseHas('metode_pembayarans', ['nama' => 'QRIS Uji Alur', 'tipe' => 'digital', 'aktif' => true]);
     }
 
-    public function test_donasi_uang_pending_tersimpan_dengan_nomor_transaksi_otomatis(): void
+    public function test_donasi_uang_tersimpan_dengan_nomor_transaksi_otomatis(): void
     {
         [, $donatur, $jenis, $metode] = $this->siapkanRantaiBisnis();
 
         $this->isiFormDonasi($donatur, $jenis, $metode)->assertHasNoFormErrors();
 
         $donasi = Donasi::where('donatur_id', $donatur->id)->firstOrFail();
-        $this->assertSame('pending', $donasi->status_konfirmasi);
+        $this->assertSame('verified', $donasi->status_konfirmasi);
         $this->assertStringStartsWith('TRX', $donasi->nomor_transaksi_unik);
         $this->assertSame(1000000.0, (float) $donasi->jumlah);
         $this->assertSame(Auth::id(), $donasi->dicatat_oleh_user_id);
@@ -262,7 +264,7 @@ class AlurBisnisLengkapTest extends TestCase
             ->assertHasNoFormErrors();
 
         $donasi = Donasi::where('jenis_donasi_id', $jenisBarang->id)->firstOrFail();
-        $this->assertSame('pending', $donasi->status_konfirmasi);
+        $this->assertSame('verified', $donasi->status_konfirmasi);
         // Field jumlah disembunyikan untuk donasi barang: tidak di-dehydrate,
         // tersimpan sebagai default 0 dan nilai ekonomi ada di perkiraan_nilai.
         $this->assertSame(0.0, (float) $donasi->jumlah);

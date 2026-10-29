@@ -206,7 +206,7 @@ class DonasisRelationManager extends RelationManager
                         'verified' => 'Terverifikasi',
                         'rejected' => 'Ditolak',
                     ])
-                    ->default('pending')
+                    ->default('verified')
                     ->required()
                     ->visible(fn (string $operation): bool => $operation === 'edit' || (auth()->user()?->can('update_donasi') ?? false)),
 

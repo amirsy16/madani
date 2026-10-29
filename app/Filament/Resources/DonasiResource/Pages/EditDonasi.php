@@ -15,9 +15,7 @@ class EditDonasi extends EditRecord
     {
         return [
             Actions\ViewAction::make(),
-            // Donasi terverifikasi tidak boleh dihapus.
-            Actions\DeleteAction::make()
-                ->visible(fn (): bool => $this->getRecord()->status_konfirmasi !== 'verified'),
+            Actions\DeleteAction::make(),
         ];
     }
 

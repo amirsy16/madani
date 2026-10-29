@@ -35,7 +35,9 @@ class CreateDonasi extends CreateRecord
             return $data;
         }
 
-        $status = $data['status_konfirmasi'] ?? 'pending';
+        // Bawaan pengisian donasi: langsung terverifikasi (permintaan
+        // pengelola); pengguna tanpa izin tetap dipaksa menunggu (AK-07).
+        $status = $data['status_konfirmasi'] ?? 'verified';
         $data['dikofirmasi_oleh_user_id'] = $status === 'pending' ? null : auth()->id();
         $data['dikonfirmasi_pada'] = $status === 'pending' ? null : now();
 

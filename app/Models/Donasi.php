@@ -109,14 +109,6 @@ class Donasi extends Model
      */
     protected static function booted(): void
     {
-        // Donasi terverifikasi adalah dasar penyaluran & hak amil —
-        // larangan hapus dijaga di level model, bukan hanya tombol (BG-13).
-        static::deleting(function (Donasi $donasi) {
-            if ($donasi->status_konfirmasi === 'verified') {
-                throw new \RuntimeException('Donasi terverifikasi tidak dapat dihapus.');
-            }
-        });
-
         static::saving(function (Donasi $donasi) {
             $jenis = $donasi->jenisDonasi ?? ($donasi->jenis_donasi_id ? JenisDonasi::find($donasi->jenis_donasi_id) : null);
             if (! $jenis) {

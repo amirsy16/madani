@@ -33,7 +33,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\HtmlString; // Pastikan model Donatur diimpor jika digunakan di URL
+use Illuminate\Support\HtmlString; // Pastikan model Donatur diimpor jika digunakan di URL
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction; // Changed from Filament\Pages\Actions\Action
 
 class DonasiResource extends Resource
@@ -228,9 +228,6 @@ class DonasiResource extends Resource
                         ->preload()// Placeholder changed to match DonaturResource
                         ->required()
                         ->label('Jenis Donasi')
-                        // Donasi terverifikasi dikunci: mengubah jenis memindahkan
-                        // dana antar-kategori laporan.
-                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->live()
                         ->afterStateUpdated(function (callable $set, $state) {
                             $set('keterangan_infak_khusus', null);
@@ -247,8 +244,6 @@ class DonasiResource extends Resource
                         ->default(now())
                         ->required()
                         ->label('Tanggal Donasi')
-                        // Tanggal menentukan periode laporan — dikunci saat verified.
-                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->maxDate(now())
                         ->displayFormat('d M Y'),
                 ]),
@@ -263,8 +258,6 @@ class DonasiResource extends Resource
                         ->label('Jumlah Donasi (Uang)')
                         ->helperText('Masukkan jumlah donasi dalam Rupiah')
                         ->prefix('Rp')
-                        // Nominal menentukan saldo & laporan — dikunci saat verified.
-                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         // ->placeholder('100.000')
                         ->extraInputAttributes([
                             'x-data' => '{
@@ -386,8 +379,6 @@ class DonasiResource extends Resource
                         ->helperText('Estimasi nilai barang dalam Rupiah')
                         ->prefix('Rp')
                         ->placeholder('70.000')
-                        // Nilai barang menentukan saldo & laporan — dikunci saat verified.
-                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->extraInputAttributes([
                             'x-data' => '{
                                 formatNumber(value) {
@@ -486,15 +477,15 @@ class DonasiResource extends Resource
                             'verified' => 'Terverifikasi',
                             'rejected' => 'Ditolak',
                         ])
-                        ->default('pending')
+                        // Bawaan pengisian donasi: langsung terverifikasi
+                        // (permintaan pengelola); pengguna tanpa izin tetap
+                        // dipaksa menunggu verifikasi di sisi server.
+                        ->default('verified')
                         ->required()
                         // Pembuat tanpa izin verifikasi tidak melihat pilihan
                         // status saat create — donasi selalu masuk menunggu
                         // verifikasi (AK-07; dipaksa lagi di server).
                         ->visible(fn (string $operation): bool => $operation === 'edit' || (auth()->user()?->can('update_donasi') ?? false))
-                        // Status terverifikasi adalah keadaan final: tidak boleh
-                        // diputar balik lewat form (state machine pending → verified/rejected).
-                        ->disabled(fn (?Donasi $record) => $record?->status_konfirmasi === 'verified')
                         ->live()
                         ->afterStateUpdated(function (callable $set, $state) {
                             if ($state !== 'pending') {
@@ -943,27 +934,11 @@ class DonasiResource extends Resource
                     ->openUrlInNewTab()
                     ->requiresConfirmation(false),
 
-                // Donasi terverifikasi tidak boleh dihapus — dananya mungkin
-                // sudah menjadi dasar penyaluran/hak amil.
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn (Donasi $record) => $record->status_konfirmasi !== 'verified'),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->before(function (\Illuminate\Support\Collection $records, Tables\Actions\DeleteBulkAction $action): void {
-                            $terverifikasi = $records->filter(fn (Donasi $record) => $record->status_konfirmasi === 'verified')->count();
-
-                            if ($terverifikasi > 0) {
-                                \Filament\Notifications\Notification::make()
-                                    ->title('Hapus massal dibatalkan')
-                                    ->body($terverifikasi.' donasi terverifikasi tidak boleh dihapus. Batalkan verifikasinya terlebih dahulu bila memang keliru.')
-                                    ->danger()
-                                    ->send();
-
-                                $action->halt();
-                            }
-                        }),
+                    Tables\Actions\DeleteBulkAction::make(),
                     ExportBulkAction::make()->label('Ekspor Excel')->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user())),
                     // ... any other existing bulk actions ...
                 ]),
