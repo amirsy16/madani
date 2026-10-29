@@ -1,658 +1,231 @@
 @php
-    // Data processing for donation form invoice template
-    $isZakat = false;
-    $zakatTypes = ['zakat maal', 'zakat fitrah', 'zakat perusahaan'];
-    
-    $jenisToCheck = '';
-    if (isset($jenis_zakat)) {
-        $jenisToCheck = strtolower(trim($jenis_zakat));
-    } elseif (isset($jenis_donasi)) {
-        $jenisToCheck = strtolower(trim($jenis_donasi));
-    } elseif (isset($donasi) && isset($donasi->jenisDonasi->nama)) {
-        $jenisToCheck = strtolower(trim($donasi->jenisDonasi->nama));
+    // ===== Data turunan untuk template invoice formal (gaya kuitansi LAZ) =====
+    $lembaga = $lembaga ?? config('simadi.lembaga');
+
+    $jenisNama = $donasi->jenisDonasi->nama ?? ($jenis_donasi ?? 'Donasi');
+    $isBarang = (bool) ($donasi->jenisDonasi->apakah_barang ?? false);
+
+    // Nilai efektif: barang dinilai dari perkiraan nilai, uang dari jumlah.
+    $nilai = (float) ($isBarang
+        ? ($donasi->perkiraan_nilai_barang ?? $donasi->jumlah ?? 0)
+        : ($donasi->jumlah ?? $donasi->perkiraan_nilai_barang ?? 0));
+    $nilaiTeks = 'Rp. ' . number_format($nilai, 0, ',', '.') . ',-';
+
+    $deskripsiItem = $jenisNama;
+    if ($isBarang && filled($donasi->deskripsi_barang)) {
+        $deskripsiItem .= ' - ' . $donasi->deskripsi_barang;
     }
-    
-    if (!empty($jenisToCheck)) {
-        foreach ($zakatTypes as $zakatType) {
-            if (stripos($jenisToCheck, $zakatType) !== false) {
-                $isZakat = true;
-                break;
-            }
-        }
-    }
-    
-    // Set variables
-    $transactionType = $isZakat ? 'ZAKAT' : 'DONASI';
-    $personLabel = $isZakat ? 'Muzakki' : 'Donatur';
-    $invoiceNumber = $invoice_number ?? $nomor_transaksi ?? 'INV-' . date('YmdHis');
-    
-    // Extract data from objects with proper fallbacks
-    if (isset($donasi)) {
-        $nama = $donasi->donatur->nama ?? '';
-        $email = $donasi->donatur->email ?? '';
-        $telepon = $donasi->donatur->nomor_hp ?? '';
-        $alamat = $donasi->donatur->alamat_lengkap ?? '';
-        $jenisTransaksi = $donasi->jenisDonasi->nama ?? '';
-        $tanggalTransaksi = $donasi->tanggal_donasi ?? '';
-        $metodePembayaran = $donasi->metodePembayaran->nama ?? '';
-        $keterangan = $donasi->keterangan ?? '';
-        $jumlahNumeric = $donasi->jumlah ?? 0;
-        $jumlahFormatted = 'Rp ' . number_format($jumlahNumeric, 0, ',', '.');
-        $donaturId = $donasi->donatur->id ?? '';
+
+    $tanggalId = \Carbon\Carbon::parse($donasi->tanggal_donasi)->locale('id')->translatedFormat('d F Y');
+
+    $namaDonatur = $donasi->donatur->nama ?? ($nama_donatur ?? 'Hamba Allah');
+    $alamatDonatur = $donasi->donatur->alamat_lengkap ?? ($alamat_donatur ?? '');
+    $tandaTangan = $donasi->dicatatOleh?->name ?? '.........................................';
+
+    // Rekening tujuan: metode pembayaran donasi bila menyimpan nomor
+    // rekening; selain itu rekening transfer aktif pertama.
+    $m = $donasi->metodePembayaran;
+    if ($m && filled($m->nomor_rekening)) {
+        $bank = [
+            'nama' => $m->bank_name ?: $m->nama,
+            'rekening' => $m->nomor_rekening,
+            'atas_nama' => $m->atas_nama_rekening ?: $lembaga['nama_tampil'],
+        ];
     } else {
-        $nama = $nama_donatur ?? 'N/A';
-        $email = $email_donatur ?? '';
-        $telepon = $telepon_donatur ?? '';
-        $alamat = $alamat_donatur ?? '';
-        $jenisTransaksi = $jenis_donasi ?? 'Donasi Umum';
-        $tanggalTransaksi = $tanggal_donasi ?? date('Y-m-d');
-        $metodePembayaran = $metode_pembayaran ?? 'Transfer Bank';
-        $keterangan = $catatan ?? '';
-        $jumlahFormatted = $jumlah_formatted ?? 'Rp 0';
-        $jumlahNumeric = is_numeric($jumlah ?? 0) ? $jumlah : 0;
-        $donaturId = $id_donatur ?? '';
+        $fallback = \App\Models\MetodePembayaran::where('tipe', 'transfer_bank')
+            ->where('aktif', true)->orderBy('id')->first();
+        $bank = $fallback ? [
+            'nama' => $fallback->bank_name ?: $fallback->nama,
+            'rekening' => $fallback->nomor_rekening,
+            'atas_nama' => $fallback->atas_nama_rekening ?: $lembaga['nama_tampil'],
+        ] : null;
     }
-    
-    // Date formatting
-    $tanggalFormatted = date('d/m/Y', strtotime($tanggalTransaksi));
-    
-    // Simple terbilang function
-    function terbilang($number) {
-        $x = abs($number);
-        $angka = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
-        
-        if ($x < 12) return " " . $angka[$x];
-        if ($x < 20) return terbilang($x - 10) . " belas";
-        if ($x < 100) return terbilang($x/10) . " puluh" . terbilang($x % 10);
-        if ($x < 200) return " seratus" . terbilang($x - 100);
-        if ($x < 1000) return terbilang($x/100) . " ratus" . terbilang($x % 100);
-        if ($x < 2000) return " seribu" . terbilang($x - 1000);
-        if ($x < 1000000) return terbilang($x/1000) . " ribu" . terbilang($x % 1000);
-        if ($x < 1000000000) return terbilang($x/1000000) . " juta" . terbilang($x % 1000000);
-        
-        return "";
-    }
-    
-    $jumlahTerbilang = $jumlahNumeric > 0 ? ucfirst(trim(terbilang($jumlahNumeric))) . ' rupiah' : '';
 @endphp
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice {{ $transactionType }} - {{ $invoiceNumber }}</title>
+    <title>Invoice {{ $invoice_number }}</title>
     <style>
-        @page {
-            margin: 5mm;
-            size: A5 landscape;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        @page { margin: 0; size: A4 portrait; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 7px;
-            line-height: 1.2;
-            color: #333;
-            background: #fff;
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 8.5px;
+            color: #1f1f1f;
+            background: #ffffff;
+            position: relative;
+            padding: 14px 18px 40px 18px;
+            line-height: 1.35;
         }
-        
-        .invoice-container {
-            width: 100%;
-            border: 2px solid #d63384;
-            background: #fff;
+
+        .watermark {
+            position: absolute;
+            right: 10px;
+            bottom: 18px;
+            width: 190px;
         }
-        
-        .header {
-            background: linear-gradient(90deg, #d63384 0%, #d63384 60%, #28a745 60%, #28a745 100%);
-            color: white;
-            padding: 6px 8px;
-            display: table;
-            width: 100%;
-        }
-        
-        .header-left {
-            display: table-cell;
-            width: 60%;
-            vertical-align: middle;
-        }
-        
-        .header-right {
-            display: table-cell;
-            width: 40%;
-            text-align: right;
-            vertical-align: middle;
-            background: #28a745;
-            padding: 6px;
-            margin: -6px -8px -6px 0;
-        }
-        
-        .invoice-title {
-            font-size: 12px;
+
+        .header { width: 100%; }
+        .header td { vertical-align: middle; }
+        .header td.brand { width: 31%; }
+        .header td.brand-logo { width: 38%; text-align: center; }
+        .header td.brand-right { width: 31%; text-align: right; }
+        .brand-nama { font-size: 9.5px; font-weight: bold; color: #800020; letter-spacing: 0.4px; }
+        .brand-sub { font-size: 6px; color: #444; margin-top: 2px; }
+        .brand-legal { font-size: 5.5px; color: #666; margin-top: 1px; }
+        .brand-logo img { height: 34px; }
+
+        .judul { text-align: center; margin: 8px 0 10px 0; }
+        .judul span {
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 1px;
+            letter-spacing: 3px;
+            border-bottom: 2.5px solid #1f1f1f;
+            padding: 0 14px 2px 14px;
         }
-        
-        .invoice-subtitle {
-            font-size: 8px;
-            opacity: 0.9;
-        }
-        
-        .badges {
-            margin-top: 2px;
-        }
-        
-        .badge {
-            display: inline-block;
-            background-color: rgba(255,255,255,0.2);
-            color: white;
-            padding: 1px 4px;
-            border-radius: 8px;
-            font-size: 5px;
-            margin: 0 1px;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .org-info {
-            font-size: 7px;
-            line-height: 1.1;
-        }
-        
-        .bismillah {
-            text-align: center;
-            font-style: italic;
-            padding: 4px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-            font-size: 7px;
-            color: #666;
-        }
-        
-        .main-content {
-            display: table;
-            width: 100%;
-            background: #fff;
-        }
-        
-        .left-section {
-            display: table-cell;
-            width: 50%;
-            padding: 6px;
-            vertical-align: top;
-            border-right: 1px solid #dee2e6;
-        }
-        
-        .right-section {
-            display: table-cell;
-            width: 50%;
-            padding: 6px;
-            vertical-align: top;
-        }
-        
-        .section-title {
-            font-size: 9px;
-            font-weight: bold;
-            color: #d63384;
-            margin-bottom: 6px;
-            padding-bottom: 1px;
-            border-bottom: 1px solid #d63384;
-        }
-        
-        .info-row {
-            display: table;
-            width: 100%;
-            margin-bottom: 4px;
-        }
-        
-        .info-label {
-            display: table-cell;
-            width: 35%;
-            font-size: 7px;
-            color: #666;
-            vertical-align: top;
-            padding-right: 3px;
-        }
-        
-        .info-value {
-            display: table-cell;
-            width: 65%;
-            font-size: 7px;
-            font-weight: 500;
-            border-bottom: 1px dotted #ccc;
-            padding-bottom: 1px;
-        }
-        
-        .amount-highlight {
-            text-align: center;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 2px solid #d63384;
-            border-radius: 6px;
-            padding: 6px;
-            margin: 6px 0;
-        }
-        
-        .amount-label {
-            font-size: 7px;
-            color: #666;
-            margin-bottom: 2px;
-        }
-        
-        .amount-value {
-            font-size: 12px;
-            font-weight: bold;
-            color: #d63384;
-            margin-bottom: 2px;
-        }
-        
-        .amount-words {
-            font-size: 6px;
-            font-style: italic;
-            color: #666;
-            border-top: 1px solid #dee2e6;
-            padding-top: 2px;
-        }
-        
-        .donation-table {
+
+        .meta { width: 100%; margin-top: 6px; }
+        .meta td { vertical-align: top; }
+        .meta td.kiri { width: 46%; }
+        .meta td.kanan { width: 54%; padding-left: 8px; }
+        .meta .label { font-weight: bold; text-decoration: underline; }
+        .meta .program-nama { font-size: 9px; margin-top: 3px; }
+        .meta-baris { margin-bottom: 2px; }
+        .meta-baris .lbl { display: inline-block; width: 34px; font-weight: bold; }
+
+        .blok { margin-top: 8px; }
+        .blok .judul-blok { font-weight: bold; margin-bottom: 8px; }
+        .blok .isi { line-height: 1.7; }
+
+        table.rincian {
             width: 100%;
             border-collapse: collapse;
-            margin: 4px 0;
-            font-size: 7px;
+            margin-top: 8px;
         }
-        
-        .donation-table th,
-        .donation-table td {
-            border: 1px solid #dee2e6;
-            padding: 4px;
-            text-align: left;
+        table.rincian th, table.rincian td {
+            border: 1px solid #1f1f1f;
+            padding: 2.5px 5px;
         }
-        
-        .donation-table th {
-            background: #f8f9fa;
-            font-weight: bold;
-            font-size: 7px;
-            text-align: center;
-        }
-        
-        .payment-methods {
-            margin: 4px 0;
-        }
-        
-        .method-item {
-            display: inline-block;
-            margin: 1px;
-            padding: 2px 4px;
-            border-radius: 8px;
-            font-size: 6px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .method-active {
-            background: #28a745;
-            color: white;
-            border-color: #28a745;
-        }
-        
-        .method-inactive {
-            background: #f8f9fa;
-            color: #666;
-        }
-        
-        .tax-section {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 3px;
-            padding: 6px;
-            margin: 6px;
-            font-size: 7px;
-        }
-        
-        .tax-title {
-            font-weight: bold;
-            color: #856404;
-            margin-bottom: 4px;
-            text-align: center;
-        }
-        
-        .npwp-row {
-            margin: 4px 0;
-        }
-        
-        .npwp-field {
-            border-bottom: 1px solid #333;
-            display: inline-block;
-            width: 100px;
-            height: 15px;
-            margin-left: 6px;
-        }
-        
-        .signature-section {
-            display: table;
-            width: 100%;
-            margin-top: 4px;
-        }
-        
-        .signature-left {
-            display: table-cell;
-            width: 50%;
-            padding-right: 4px;
-        }
-        
-        .signature-right {
-            display: table-cell;
-            width: 50%;
-            padding-left: 4px;
-        }
-        
-        .signature-box {
-            border: 1px solid #dee2e6;
-            height: 30px;
-            text-align: center;
-            padding: 3px;
-            background: #fff;
-        }
-        
-        .signature-label {
-            font-size: 6px;
-            color: #666;
-            margin-bottom: 1px;
-        }
-        
-        .qr-code {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #dee2e6;
-            background: #f8f9fa;
-            margin: 4px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 5px;
-            color: #666;
-        }
-        
+        table.rincian th { font-weight: bold; }
+        table.rincian td.total { font-weight: bold; }
+
+        .transfer { margin-top: 8px; }
+        .transfer .pengantar { font-weight: bold; margin-bottom: 8px; }
+        .transfer .baris { margin-bottom: 2px; }
+        .transfer .baris .lbl { display: inline-block; width: 84px; font-weight: bold; }
+        .transfer .baris .val { font-weight: bold; }
+
+        .ttd { width: 100%; margin-top: 10px; }
+        .ttd td { vertical-align: top; }
+        .ttd td.kanan { width: 170px; text-align: center; font-weight: bold; }
+        .ttd .ruang { height: 26px; }
+
         .footer {
-            background: #d63384;
-            color: white;
-            padding: 4px 6px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 6px;
             text-align: center;
-            font-size: 6px;
         }
-        
-        .footer-org {
-            font-weight: bold;
-            margin-bottom: 1px;
-        }
-        
-        .footer-contact {
-            display: table;
-            width: 100%;
-            margin-top: 2px;
-        }
-        
-        .footer-left {
-            display: table-cell;
-            width: 70%;
-            text-align: left;
-        }
-        
-        .footer-right {
-            display: table-cell;
-            width: 30%;
-            text-align: right;
-        }
-        
-        .checkbox {
-            width: 8px;
-            height: 8px;
-            border: 1px solid #333;
-            display: inline-block;
-            text-align: center;
-            line-height: 6px;
-            margin-right: 3px;
-            font-size: 5px;
-        }
-        
-        .checkbox-checked {
-            background: #28a745;
-            color: white;
-        }
+        .footer .legal { font-size: 6px; font-weight: bold; color: #222; }
+        .footer .alamat { font-size: 5.5px; color: #444; margin-top: 1px; }
+        .footer .pita { height: 7px; background: #800020; margin-top: 4px; }
     </style>
 </head>
 <body>
-    <div class="invoice-container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-left">
-                <div class="invoice-title">INVOICE {{ $transactionType }}</div>
-                <div class="invoice-subtitle">{{ $invoiceNumber }}</div>
-                <div class="badges">
-                    <span class="badge">TERAKREDITASI</span>
-                    <span class="badge">WTP</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="org-info">
-                    <div style="font-weight: bold;">♥ INSAN MADANI JAMBI</div>
-                    <div>LEMBAGA AMIL ZAKAT</div>
-                    <div>No. SK 378/2018</div>
-                </div>
-            </div>
+    @if (! empty($watermark))
+        <img class="watermark" src="{{ $watermark }}" alt="">
+    @endif
+
+    <table class="header">
+        <tr>
+            <td class="brand">
+                <div class="brand-nama">{{ $lembaga['nama'] }}</div>
+                <div class="brand-sub">{{ $lembaga['tagline'] }}</div>
+                <div class="brand-legal">{{ $lembaga['legal'] }}</div>
+            </td>
+            <td class="brand-logo">
+                @if (! empty($logo_base64))
+                    <img src="{{ $logo_base64 }}" alt="Logo {{ $lembaga['nama_tampil'] }}" style="height: 64px;">
+                @endif
+            </td>
+            <td class="brand-right">
+                <div class="brand-nama">SIMADI</div>
+                <div class="brand-sub">Sistem Informasi<br>Manajemen Donasi</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="judul"><span>INVOICE</span></div>
+
+    <table class="meta">
+        <tr>
+            <td class="kiri">
+                <div class="label">Program :</div>
+                <div class="program-nama">{{ $jenisNama }}</div>
+            </td>
+            <td class="kanan">
+                <div class="meta-baris"><span class="lbl">Tanggal</span> : {{ $tanggalId }}</div>
+                <div class="meta-baris"><span class="lbl">No</span> : {{ $invoice_number }}</div>
+                <div class="meta-baris"><span class="lbl">Telp</span> : {{ $lembaga['telp'] }}</div>
+                <div class="meta-baris"><span class="lbl">Web</span> : {{ $lembaga['web'] }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="blok">
+        <div class="judul-blok">Kepada :</div>
+        <div class="isi">
+            {{ $namaDonatur }}
+            @if (filled($alamatDonatur))
+                <br>{{ $alamatDonatur }}
+            @endif
         </div>
+    </div>
 
-        <!-- Bismillah -->
-        <div class="bismillah">
-            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ<br>
-            <em>LAZ Yayasan Insan Madani Jambi - Terima kasih atas amanah Anda</em>
+    <table class="rincian">
+        <tr>
+            <th style="width: 68%;">Deskripsi</th>
+            <th style="width: 32%;">Jumlah</th>
+        </tr>
+        <tr>
+            <td>{{ $deskripsiItem }}</td>
+            <td>{{ $nilaiTeks }}</td>
+        </tr>
+        <tr>
+            <td class="total">TOTAL</td>
+            <td class="total">{{ $nilaiTeks }}</td>
+        </tr>
+    </table>
+
+    @if ($bank)
+        <div class="transfer">
+            <div class="pengantar">Dana tersebut telah kami terima melalui:</div>
+            <div class="baris"><span class="lbl">Nama Bank</span> : <span class="val">{{ $bank['nama'] }}</span></div>
+            <div class="baris"><span class="lbl">No Rekening</span> : <span class="val">{{ $bank['rekening'] }}</span></div>
+            <div class="baris"><span class="lbl">Atas Nama</span> : <span class="val">{{ $bank['atas_nama'] }}</span></div>
         </div>
+    @endif
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Left Section: Informasi Donatur -->
-            <div class="left-section">
-                <div class="section-title">INFORMASI {{ $personLabel }}</div>
-                
-                <div class="info-row">
-                    <div class="info-label">Tanggal:</div>
-                    <div class="info-value">{{ $tanggalFormatted }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Nama {{ $personLabel }}:</div>
-                    <div class="info-value">{{ $nama }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">ID {{ $personLabel }}:</div>
-                    <div class="info-value">{{ $donaturId }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Alamat:</div>
-                    <div class="info-value">{{ $alamat }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">No. Telepon:</div>
-                    <div class="info-value">{{ $telepon }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Cabang:</div>
-                    <div class="info-value">Jambi</div>
-                </div>
+    <table class="ttd">
+        <tr>
+            <td></td>
+            <td class="kanan">
+                Hormat Kami
+                <div class="ruang"></div>
+                ( {{ $tandaTangan }} )
+            </td>
+        </tr>
+    </table>
 
-                <!-- Payment Methods -->
-                <div style="margin-top: 8px;">
-                    <div style="font-size: 7px; font-weight: bold; margin-bottom: 3px;">Metode Pembayaran:</div>
-                    <div class="payment-methods">
-                        @php
-                            $metodeLower = strtolower($metodePembayaran);
-                            $isTunai = in_array($metodeLower, ['tunai', 'cash', 'uang tunai']);
-                            $isTransfer = stripos($metodePembayaran, 'transfer') !== false || 
-                                         stripos($metodePembayaran, 'bank') !== false || 
-                                         stripos($metodePembayaran, 'bri') !== false || 
-                                         stripos($metodePembayaran, 'bca') !== false || 
-                                         stripos($metodePembayaran, 'mandiri') !== false || 
-                                         stripos($metodePembayaran, 'bni') !== false ||
-                                         stripos($metodePembayaran, 'va') !== false ||
-                                         stripos($metodePembayaran, 'virtual') !== false;
-                            $isKartu = stripos($metodePembayaran, 'card') !== false || 
-                                      stripos($metodePembayaran, 'debit') !== false || 
-                                      stripos($metodePembayaran, 'kredit') !== false ||
-                                      stripos($metodePembayaran, 'visa') !== false ||
-                                      stripos($metodePembayaran, 'mastercard') !== false;
-                            $isEwallet = stripos($metodePembayaran, 'ovo') !== false || 
-                                        stripos($metodePembayaran, 'gopay') !== false || 
-                                        stripos($metodePembayaran, 'dana') !== false ||
-                                        stripos($metodePembayaran, 'shopeepay') !== false ||
-                                        stripos($metodePembayaran, 'linkaja') !== false ||
-                                        stripos($metodePembayaran, 'wallet') !== false;
-                            $isQris = stripos($metodePembayaran, 'qris') !== false || 
-                                     stripos($metodePembayaran, 'qr') !== false;
-                        @endphp
-                        
-                        <span class="method-item {{ $isTunai ? 'method-active' : 'method-inactive' }}">
-                            💰 Tunai
-                        </span>
-                        <span class="method-item {{ $isTransfer ? 'method-active' : 'method-inactive' }}">
-                            🏦 Transfer
-                        </span>
-                        <span class="method-item {{ $isKartu ? 'method-active' : 'method-inactive' }}">
-                            💳 Kartu
-                        </span>
-                        <span class="method-item {{ $isEwallet ? 'method-active' : 'method-inactive' }}">
-                            📱 E-Wallet
-                        </span>
-                        <span class="method-item {{ $isQris ? 'method-active' : 'method-inactive' }}">
-                            � QRIS
-                        </span>
-                    </div>
-                    
-                    <!-- Tampilkan metode pembayaran yang dipilih -->
-                    <div style="margin-top: 3px; font-size: 6px; color: #d63384; font-weight: bold;">
-                        Dipilih: {{ $metodePembayaran }}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Right Section: Detail Transaksi -->
-            <div class="right-section">
-                <div class="section-title">DETAIL {{ $transactionType }}</div>
-                
-                <!-- Transaction Table -->
-                <table class="donation-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 40%;">Jenis {{ $transactionType }}</th>
-                            <th style="width: 60%;">Keterangan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div style="margin-bottom: 2px;">
-                                    <span class="checkbox {{ $isZakat ? 'checkbox-checked' : '' }}">{{ $isZakat ? '✓' : '' }}</span>
-                                    Zakat
-                                </div>
-                                <div style="margin-bottom: 2px;">
-                                    <span class="checkbox {{ !$isZakat ? 'checkbox-checked' : '' }}">{{ !$isZakat ? '✓' : '' }}</span>
-                                    Infaq/Sedekah/Donasi
-                                </div>
-                                
-                                <!-- Detail Jenis Spesifik -->
-                                <div style="margin-top: 4px; font-size: 6px; color: #666; border-top: 1px dotted #ccc; padding-top: 2px;">
-                                    <strong>Kategori:</strong><br>
-                                    {{ $jenisTransaksi }}
-                                </div>
-                            </td>
-                            <td>
-                                <strong>{{ $jenisTransaksi }}</strong><br>
-                                <div style="margin-top: 2px; font-size: 6px; color: #666;">
-                                    {{ $keterangan }}
-                                </div>
-                                
-                                @if ($isZakat)
-                                    <div style="margin-top: 3px; padding: 2px; background: #e8f5e8; border-radius: 2px; font-size: 6px;">
-                                        <strong>Zakat:</strong> Kewajiban agama
-                                    </div>
-                                @else
-                                    <div style="margin-top: 3px; padding: 2px; background: #fff3cd; border-radius: 2px; font-size: 6px;">
-                                        <strong>Donasi:</strong> Amal jariyah
-                                    </div>
-                                @endif
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- Amount Highlight -->
-                <div class="amount-highlight">
-                    <div class="amount-label">TOTAL {{ $transactionType }}</div>
-                    <div class="amount-value">Rp {{ number_format($jumlahNumeric, 0, ',', '.') }}</div>
-                    <div class="amount-words">{{ $jumlahTerbilang }}</div>
-                </div>
-
-                <!-- QR Code -->
-                <div class="qr-code">
-                    <div>
-                        QR CODE<br>
-                        <small>Donasi Digital</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tax Section -->
-        <div class="tax-section">
-            <div class="tax-title">UNTUK PENGURANGAN PAJAK PENGHASILAN</div>
-            <div class="npwp-row">
-                <strong>NPWP:</strong>
-                <span class="npwp-field"></span>
-                <span style="margin-left: 6px; font-size: 6px; color: #666;">
-                    Lampiran SPT Tahunan KEP-163/PJ/2003
-                </span>
-            </div>
-            
-            <div class="signature-section">
-                <div class="signature-left">
-                    <div class="signature-label">TTD Penyetor</div>
-                    <div class="signature-box">
-                        <div style="margin-top: 10px; font-size: 6px; color: #666;">
-                            {{ $nama }}
-                        </div>
-                    </div>
-                </div>
-                <div class="signature-right">
-                    <div class="signature-label">Pengesahan</div>
-                    <div class="signature-box">
-                        <div style="color: #d63384; font-weight: bold; margin-top: 6px;">
-                            ♥ INSAN MADANI
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-org">
-                LAZ INSAN MADANI JAMBI - LEMBAGA AMIL ZAKAT RESMI SKALA PROVINSI<br>
-                SK KEMENTERIAN AGAMA RI NO. 378 TAHUN 2018
-            </div>
-            <div class="footer-contact">
-                <div class="footer-left">
-                    Jl. Otto Iskandardinata No. 15, Sei Asam, Pasar Jambi ☎ 0811.743.1231
-                </div>
-                <div class="footer-right">
-                    🌐 insanmadanijambi.org
-                </div>
-            </div>
-        </div>
+    <div class="footer">
+        <div class="legal">{{ $lembaga['nama'] }} &mdash; {{ $lembaga['legal'] }}</div>
+        <div class="alamat">{{ $lembaga['alamat'] }} &nbsp;&bull;&nbsp; Telp. {{ $lembaga['telp'] }} &nbsp;&bull;&nbsp; {{ $lembaga['web'] }}</div>
+        <div class="pita"></div>
     </div>
 </body>
 </html>
