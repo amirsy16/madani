@@ -342,6 +342,11 @@ class DonasisRelationManager extends RelationManager
                             $data['status_konfirmasi'] = 'pending';
                             $data['dikofirmasi_oleh_user_id'] = null;
                             $data['dikonfirmasi_pada'] = null;
+                        } elseif (($data['status_konfirmasi'] ?? 'verified') !== 'pending') {
+                            // Paritas CreateDonasi: bawaan verified tetap
+                            // membawa jejak verifikator & waktu.
+                            $data['dikofirmasi_oleh_user_id'] = auth()->id();
+                            $data['dikonfirmasi_pada'] = now();
                         }
 
                         return $data;

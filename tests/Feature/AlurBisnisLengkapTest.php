@@ -308,8 +308,11 @@ class AlurBisnisLengkapTest extends TestCase
         $this->assertSame('001454', $terakhir->nomor_transaksi_unik);
     }
 
-    public function test_duplikat_nomor_transaksi_ditolak(): void
+    public function test_nomor_transaksi_dari_form_diabaikan_server_membuat_baru(): void
     {
+        // Nilai nomor pada formulir hanyalah pratinjau; server selalu
+        // menimpa dengan nomor urut baru sehingga dua formulir yang dibuka
+        // bersamaan tidak saling memblokir.
         [, $donatur, $jenis, $metode] = $this->siapkanRantaiBisnis();
         Donasi::factory()->create([
             'nomor_transaksi_unik' => 'TRXDUPALUR',
@@ -327,8 +330,11 @@ class AlurBisnisLengkapTest extends TestCase
                 'nomor_transaksi_unik' => 'TRXDUPALUR',
             ])
             ->call('create')
-            ->assertHasFormErrors(['nomor_transaksi_unik']);
+            ->assertHasNoFormErrors();
 
+        $donasiBaru = Donasi::where('donatur_id', $donatur->id)->orderByDesc('id')->first();
+        $this->assertNotSame('TRXDUPALUR', $donasiBaru->nomor_transaksi_unik);
+        $this->assertMatchesRegularExpression('/^[0-9]{6}$/', $donasiBaru->nomor_transaksi_unik);
         $this->assertSame(1, Donasi::where('nomor_transaksi_unik', 'TRXDUPALUR')->count());
     }
 

@@ -38,12 +38,22 @@ class NotifikasiLogin
     public function handleGagal(Failed $event): void
     {
         $email = trim((string) ($event->credentials['email'] ?? ''));
+        $identitas = $email !== '' ? $email : (request()->ip() ?? 'tanpa-ip');
 
-        NotifikasiWa::kirim(
-            "⚠️ *Login Gagal*\n".
-            ($email !== '' ? "Email: {$email}\n" : '').
-            'IP '.(request()->ip() ?? '-')."\n".
-            NotifikasiWa::stempelWaktu()
+        // Batasi spam WA saat dicoba-coba: maksimal 5 pemberitahuan
+        // per identitas per jam (pola sama dengan NotifikasiError).
+        \Illuminate\Support\Facades\RateLimiter::attempt(
+            'wa-login-gagal:'.md5(strtolower($identitas)),
+            5,
+            function () use ($email): void {
+                NotifikasiWa::kirim(
+                    "⚠️ *Login Gagal*\n".
+                    ($email !== '' ? "Email: {$email}\n" : '').
+                    'IP '.(request()->ip() ?? '-')."\n".
+                    NotifikasiWa::stempelWaktu()
+                );
+            },
+            3600
         );
     }
 }

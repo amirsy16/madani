@@ -116,7 +116,13 @@ class ListDonasis extends ListRecords
                     $duplikat = Donasi::where('donatur_id', $data['donatur_id'])
                         ->where('jenis_donasi_id', $data['jenis_donasi_id'])
                         ->where('tanggal_donasi', $data['tanggal_donasi'])
-                        ->whereRaw('COALESCE(jumlah, 0) = ?', [(float) ($data['jumlah'] ?? 0)])
+                        // Nilai efektif: donasi barang dinilai dari perkiraan
+                        // nilai (jumlah dinormalkan 0 oleh model), uang dari jumlah.
+                        ->whereRaw('COALESCE(NULLIF(perkiraan_nilai_barang, 0), jumlah, 0) = ?', [
+                            $jenisDonasi->apakah_barang
+                                ? (float) ($data['perkiraan_nilai_barang'] ?? 0)
+                                : (float) ($data['jumlah'] ?? 0),
+                        ])
                         ->exists();
                     if ($duplikat) {
                         throw new \Exception('Donasi identik (donatur, tanggal, jenis, nominal sama) sudah tercatat — hapus baris kembar atau batasi rentang tanggal berkas');

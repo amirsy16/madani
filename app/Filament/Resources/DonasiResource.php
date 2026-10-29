@@ -69,7 +69,13 @@ class DonasiResource extends Resource
      */
     public static function getNavigationBadge(): ?string
     {
-        $totalDonasi = static::getModel()::count();
+        // Ikut pembatasan peran: fundraiser menghitung donasinya sendiri
+        // (paritas dengan getEloquentQuery).
+        $query = \App\Support\AksesPanel::terapkanScopeDonasi(
+            static::getModel()::query(),
+            auth()->user(),
+        );
+        $totalDonasi = $query->count();
 
         return $totalDonasi > 0 ? (string) $totalDonasi : null;
     }
@@ -546,12 +552,14 @@ class DonasiResource extends Resource
                 ->hiddenOn('edit'), // Tampil saat create dan view, sembunyi saat edit
 
             // Hidden fields for system tracking
+            // Hanya PRATINJAU — tidak dikirim ke server; nomor final dibuat
+            // server-side saat menyimpan agar dua formulir yang dibuka
+            // bersamaan tidak saling memblokir dengan validasi unique
+            // atas nomor yang sudah basi.
             TextInput::make('nomor_transaksi_unik')
                 ->default(fn () => \App\Models\Donasi::generateNomorTransaksiUnik())
-                ->dehydrated()
-                ->required()
-                ->unique(Donasi::class, 'nomor_transaksi_unik', ignoreRecord: true)
-                ->readOnlyOn('edit'), // Hanya bisa diisi saat create
+                ->dehydrated(false)
+                ->readOnlyOn('edit'),
 
             Forms\Components\Hidden::make('dicatat_oleh_user_id')
                 ->default(fn () => Auth::id())
@@ -934,11 +942,15 @@ class DonasiResource extends Resource
                     ->openUrlInNewTab()
                     ->requiresConfirmation(false),
 
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalDescription(fn (Donasi $record) => $record->status_konfirmasi === 'verified'
+                        ? 'Donasi ini TERVERIFIKASI dan sudah memengaruhi saldo, hak amil, serta laporan. Menghapusnya akan mengubah angka historis — pastikan tidak menjadi dasar penyaluran yang sedang berjalan.'
+                        : 'Yakin ingin menghapus donasi ini?'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->modalDescription('Donasi berstatus TERVERIFIKASI sudah memengaruhi saldo dan laporan — penghapusan akan mengubah angka historis.'),
                     ExportBulkAction::make()->label('Ekspor Excel')->visible(fn (): bool => \App\Support\AksesPanel::lihatSemuaDonasi(auth()->user())),
                     // ... any other existing bulk actions ...
                 ]),
