@@ -30,11 +30,7 @@
             <div class="relative hidden flex-col justify-between p-8 md:flex lg:p-10">
 
                 <div class="relative">
-                    <div class="inline-flex items-center rounded-lg bg-white/95 px-3.5 py-2.5 shadow-sm">
-                        <img src="{{ asset('images/LOGOIM.png') }}" alt="LAZ Insan Madani" class="h-9 w-auto">
-                    </div>
-
-                    <h2 class="mt-8 text-3xl font-bold tracking-tight text-white">
+                    <h2 class="text-3xl font-bold tracking-tight text-white">
                         SIMADI
                         <span class="ml-1 align-middle text-[11px] font-semibold uppercase tracking-widest text-amber-300/90">{{ config('app.version') }}</span>
                     </h2>
