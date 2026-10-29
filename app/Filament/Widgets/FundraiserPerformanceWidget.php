@@ -27,9 +27,23 @@ class FundraiserPerformanceWidget extends BaseWidget
     // Jangan tampilkan di dashboard utama, hanya di halaman Analisis Data
     protected static bool $isDiscovered = false;
 
+    /**
+     * Judul dibaca saat render dari state filter ter-hydrate sehingga
+     * langsung mengikuti nilai terbaru.
+     */
+    private function timePeriodAktif(): string
+    {
+        return (string) ($this->tableFilters['time_period']['value'] ?? $this->timePeriod);
+    }
+
+    private function limitAktif(): int
+    {
+        return (int) ($this->tableFilters['limit']['value'] ?? $this->limit);
+    }
+
     public function getHeading(): string
     {
-        $periodLabel = match ($this->timePeriod) {
+        $periodLabel = match ($this->timePeriodAktif()) {
             'current_month' => 'Bulan Ini',
             'last_month' => 'Bulan Lalu',
             'last_3_months' => '3 Bulan Terakhir',
@@ -39,7 +53,8 @@ class FundraiserPerformanceWidget extends BaseWidget
             default => 'Semua Waktu'
         };
 
-        $limitLabel = $this->limit > 0 ? "Top {$this->limit}" : 'Semua';
+        $limitAktif = $this->limitAktif();
+        $limitLabel = $limitAktif > 0 ? "Top {$limitAktif}" : 'Semua';
 
         return "Performa Fundraiser - {$limitLabel} ({$periodLabel})";
     }
@@ -150,7 +165,9 @@ class FundraiserPerformanceWidget extends BaseWidget
                     ->query(function ($query, array $data) {
                         $this->timePeriod = $data['value'] ?? 'all_time';
 
-                        return $query;
+                        // Diterapkan pada fase render (bukan ON-clause join yang
+                        // dibangun saat boot) agar nilai baru berlaku seketika.
+                        return $this->terapkanPeriodeWaktu($query, $this->timePeriod);
                     }),
 
                 SelectFilter::make('status')
@@ -182,10 +199,13 @@ class FundraiserPerformanceWidget extends BaseWidget
                         0 => 'Semua',
                     ])
                     ->default(10)
-                    ->query(function ($query, array $data) {
-                        $this->limit = $data['value'] ?? 10;
+                    ->query(fn ($query, array $data) => $query)
+                    // Limit pada base query agar berlaku seketika (lihat
+                    // catatan TopDonaturWidget); 0 (Semua) menghapus limit.
+                    ->baseQuery(function ($query, array $data) {
+                        $this->limit = (int) ($data['value'] ?? 10);
 
-                        return $query;
+                        return $query->limit($this->limit > 0 ? $this->limit : null);
                     }),
             ])
             ->defaultSort('total_dana_terkumpul', 'desc')
@@ -213,8 +233,6 @@ class FundraiserPerformanceWidget extends BaseWidget
                      // Paritas kartu statistik: Penyaluran Langsung tidak masuk kas.
                     ->whereNotIn('donasis.jenis_donasi_id', \App\Models\JenisDonasi::where('nama', 'Penyaluran Langsung')->select('id'));
 
-                // Apply time filter in join clause
-                $this->applyTimePeriodFilterToJoin($join);
             });
 
         $baseQuery = $query
@@ -222,7 +240,8 @@ class FundraiserPerformanceWidget extends BaseWidget
             ->having('total_transaksi', '>', 0)  // Hanya tampilkan yang punya transaksi
             ->orderByDesc('total_dana_terkumpul');
 
-        // Apply limit only if it's not 0 (which means show all)
+        // Limit bawaan saat boot; nilai filter terbaru ditimpa closure
+        // filter limit pada fase render.
         if ($this->limit > 0) {
             $baseQuery->limit($this->limit);
         }
@@ -230,28 +249,28 @@ class FundraiserPerformanceWidget extends BaseWidget
         return $baseQuery;
     }
 
-    protected function applyTimePeriodFilterToJoin($join): void
+    /**
+     * Terapkan filter periode sebagai WHERE pada query final (bukan pada
+     * ON-clause join yang dibangun saat boot) agar nilai baru berlaku
+     * seketika tanpa lag.
+     */
+    protected function terapkanPeriodeWaktu($query, string $periode)
     {
-        switch ($this->timePeriod) {
+        switch ($periode) {
             case 'current_month':
-                $join->whereBetween('donasis.tanggal_donasi', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()]);
-                break;
+                return $query->whereBetween('donasis.tanggal_donasi', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()]);
             case 'last_month':
-                $join->whereBetween('donasis.tanggal_donasi', [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()]);
-                break;
+                return $query->whereBetween('donasis.tanggal_donasi', [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()]);
             case 'current_year':
-                $join->whereBetween('donasis.tanggal_donasi', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()]);
-                break;
+                return $query->whereBetween('donasis.tanggal_donasi', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()]);
             case 'last_3_months':
-                $join->where('donasis.tanggal_donasi', '>=', Carbon::now()->subMonths(3));
-                break;
+                return $query->where('donasis.tanggal_donasi', '>=', Carbon::now()->subMonths(3));
             case 'last_6_months':
-                $join->where('donasis.tanggal_donasi', '>=', Carbon::now()->subMonths(6));
-                break;
+                return $query->where('donasis.tanggal_donasi', '>=', Carbon::now()->subMonths(6));
             case 'all_time':
             default:
-                // No additional filter - will show all fundraisers with any donations
-                break;
+                // Tanpa filter tambahan — semua fundraiser yang punya donasi
+                return $query;
         }
     }
 }

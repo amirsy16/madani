@@ -69,7 +69,17 @@ class TopDonaturWidget extends BaseWidget
 
     public function getHeading(): string
     {
-        return "Top {$this->topCount} Donatur - Analisis Lengkap";
+        return 'Top '.$this->topCountAktif().' Donatur - Analisis Lengkap';
+    }
+
+    /**
+     * Judul dibaca saat render dari state filter ter-hydrate sehingga
+     * langsung mengikuti nilai terbaru (properti baru terisi setelah
+     * closure filter dieksekusi).
+     */
+    private function topCountAktif(): int
+    {
+        return (int) ($this->tableFilters['top_count']['value'] ?? $this->topCount);
     }
 
     public function getDescription(): ?string
@@ -332,10 +342,17 @@ class TopDonaturWidget extends BaseWidget
                         100 => 'Top 100',
                     ])
                     ->default(10)
-                    ->query(function (Builder $query, array $data): Builder {
-                        $this->topCount = $data['value'] ?? 10;
+                    // Tanpa callback ini SelectFilter menerapkan where kolom
+                    // otomatis — kita hanya memakai baseQuery di bawah.
+                    ->query(fn (Builder $query): Builder => $query)
+                    // Limit diterapkan pada BASE query (di luar wrapper
+                    // nested where fase render) sehingga perubahan Top N
+                    // berlaku seketika tanpa lag.
+                    ->baseQuery(function (Builder $query, array $data): Builder {
+                        $topCount = (int) ($data['value'] ?? 10);
+                        $this->topCount = $topCount;
 
-                        return $query;
+                        return $query->limit($topCount);
                     }),
 
                 // Filter periode
@@ -712,6 +729,8 @@ class TopDonaturWidget extends BaseWidget
                 ) as jenis_donasi_terfavorit'),
             ])
             ->groupBy('donaturs.id', 'donaturs.nama', 'donaturs.nomor_hp', 'donaturs.email', 'provinces.name')
+            // Limit bawaan saat boot; nilai filter terbaru ditimpa closure
+            // filter top_count pada fase render.
             ->limit($this->topCount);
     }
 
