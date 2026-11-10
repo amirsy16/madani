@@ -69,10 +69,10 @@ class DonasisRelationManager extends RelationManager
                     ])
                     ->required()
                     ->numeric()
-                    ->minValue(1000)
+                    ->minValue(1)
                     ->validationMessages([
                         'numeric' => 'Nominal donasi harus berupa angka.',
-                        'min' => 'Nominal donasi minimal Rp 1.000.',
+                        'min' => 'Nominal donasi harus lebih dari 0.',
                     ])
                     ->dehydrateStateUsing(fn ($state) => $state ? (float) str_replace(['.', ','], ['', '.'], $state) : null
                     )

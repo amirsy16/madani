@@ -39,7 +39,7 @@ use Tests\TestCase;
  * Rp 40.000.
  *
  * Aspek yang sudah diuji file lain tidak diulang di sini: akses panel
- * (PanelAccessTest), validasi nominal 0/negatif/<1000 (DonasiJumlahValidationTest),
+ * (PanelAccessTest), validasi nominal 0/negatif ditolak, batas minimal dihapus (DonasiJumlahValidationTest),
  * kunci donasi terverifikasi (DonasiVerifiedLockTest), dan render PDF dengan
  * payload sintetis (LaporanPerubahanDanaPdfTest).
  */

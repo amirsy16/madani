@@ -18,6 +18,9 @@ use Tests\TestCase;
  *   gagal dengan error SQL (column jumlah cannot be null).
  * - "-1" dulu tersimpan karena formatter client-side hanya mengubah
  *   tampilan dan tidak ada rule numeric/min di server.
+ *
+ * Sejak 11 November 2026 batas minimal Rp 1.000 dihapus per permintaan
+ * pengelola — donasi berapa pun sah selama lebih dari 0.
  */
 class DonasiJumlahValidationTest extends TestCase
 {
@@ -73,12 +76,17 @@ class DonasiJumlahValidationTest extends TestCase
         $this->assertDatabaseMissing('donasis', ['donatur_id' => $this->donatur->id]);
     }
 
-    public function test_nominal_dibawah_seribu_ditolak_dengan_validasi(): void
+    public function test_nominal_dibawah_seribu_diterima(): void
     {
+        // Batas minimal Rp 1.000 dihapus per permintaan pengelola —
+        // nominal kecil tetap wajib lebih dari 0.
         $this->submitDenganNominal('999')
-            ->assertHasFormErrors(['jumlah']);
+            ->assertHasNoFormErrors();
 
-        $this->assertDatabaseMissing('donasis', ['donatur_id' => $this->donatur->id]);
+        $this->assertDatabaseHas('donasis', [
+            'donatur_id' => $this->donatur->id,
+            'jumlah' => 999,
+        ]);
     }
 
     public function test_nominal_valid_tetap_tersimpan_sebagai_angka(): void

@@ -92,10 +92,11 @@ class ListDonasis extends ListRecords
                     // Set default perkiraan_nilai_barang to 0 if empty
                     $data['perkiraan_nilai_barang'] = ! empty($data['perkiraan_nilai_barang']) ? (float) $data['perkiraan_nilai_barang'] : null;
 
-                    // Donasi uang wajib bernilai minimal Rp 1.000 (paritas dengan
-                    // validasi form); donasi barang dinilai dari perkiraan_nilai_barang.
-                    if (! $jenisDonasi->apakah_barang && $data['jumlah'] < 1000) {
-                        throw new \Exception("Jumlah donasi minimal Rp 1.000 untuk jenis donasi uang (kode donatur '{$donatur->kode_donatur}')");
+                    // Donasi uang wajib lebih dari 0 (paritas dengan validasi
+                    // form; batas minimal Rp 1.000 dihapus per permintaan
+                    // pengelola); donasi barang dinilai dari perkiraan_nilai_barang.
+                    if (! $jenisDonasi->apakah_barang && $data['jumlah'] < 1) {
+                        throw new \Exception("Jumlah donasi harus lebih dari 0 untuk jenis donasi uang (kode donatur '{$donatur->kode_donatur}')");
                     }
 
                     // Donasi barang wajib bernilai — tanpa ini donasi bernilai

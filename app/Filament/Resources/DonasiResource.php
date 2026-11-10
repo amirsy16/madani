@@ -294,6 +294,9 @@ class DonasiResource extends Resource
                         // yang dihasilkan formatStateUsing saat edit dan formatter
                         // Alpine saat mengetik — normalisasi dulu, semantik sama
                         // dengan dehydrateStateUsing di bawah.
+                        // Batas minimal Rp 1.000 dihapus per permintaan
+                        // pengelola (10 Nov 2026) — donasi berapa pun sah,
+                        // asalkan lebih dari 0.
                         ->rule(fn (): \Closure => function (string $attribute, $value, \Closure $fail) {
                             if (! filled($value)) {
                                 return; // kekosongan ditangani rule required
@@ -304,8 +307,8 @@ class DonasiResource extends Resource
 
                                 return;
                             }
-                            if ((float) $angka < 1000) {
-                                $fail('Nominal donasi minimal Rp 1.000.');
+                            if ((float) $angka < 1) {
+                                $fail('Nominal donasi harus lebih dari 0.');
                             }
                         })
                         ->dehydrateStateUsing(fn ($state) => filled($state) ? (float) str_replace(['.', ','], ['', '.'], $state) : null
